@@ -7,34 +7,17 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Share2,
-  CheckCircle2,
-  Lock,
-  Calculator,
-  Package,
-  MapPin,
-  ArrowLeft,
-  Play,
-  XCircle,
   Check,
-  ShieldCheck,
-  History,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Info,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Badge,
-  DraftStatusBadge,
-  GroupPickupStatusBadge,
-} from "@/components/ui/badge";
+import { GroupPickupStatusBadge, DraftStatusBadge } from "@/components/ui/badge";
 import { COURIER_LABELS, PICKUP_WINDOW_LABELS } from "@/lib/constants";
-import { formatRupiah, formatWeight, formatDateId } from "@/lib/utils";
+import { formatRupiah, formatWeight, formatDateId, cn } from "@/lib/utils";
 
 export default function PickupDetailPage() {
   const params = useParams();
@@ -43,6 +26,8 @@ export default function PickupDetailPage() {
   const queryClient = useQueryClient();
 
   const [copied, setCopied] = useState(false);
+  const [calculationOpen, setCalculationOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"packages" | "logs">("packages");
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     text: string;
@@ -92,70 +77,158 @@ export default function PickupDetailPage() {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
   const pickup = data?.pickup;
   const logs = data?.logs || [];
 
+  // Ekspor CSV rincian biaya dari halaman detail
+  const handleExportCsv = () => {
+    if (!pickup) return;
+    const headers = [
+      "Penjual",
+      "Toko",
+      "Jumlah Paket",
+      "Berat (Gram)",
+      "Porsi Berat (%)",
+      "Biaya Pickup Dasar (Rp)",
+      "Fee Platform (Rp)",
+      "Total Tagihan (Rp)",
+      "Status Bayar",
+    ];
+
+    const rows = pickup.payments.map((p: {
+      sellerName: string;
+      storeName: string;
+      packageCount: number;
+      totalWeightGram: number;
+      weightPercent: number;
+      costShare: number;
+      platformFee: number;
+      amount: number;
+      status: string;
+    }) => [
+      `"${p.sellerName}"`,
+      `"${p.storeName}"`,
+      p.packageCount,
+      p.totalWeightGram,
+      p.weightPercent,
+      p.costShare,
+      p.platformFee,
+      p.amount,
+      p.status,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...rows.map((r: (string | number)[]) => r.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `pickup-${pickup.code}-rincian-biaya.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <AppShell>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <Link
-              href="/history"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-700 hover:underline mb-1"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Kembali ke Riwayat Pengiriman
+      <div className="space-y-5">
+        {/* A. Breadcrumb & Page Header */}
+        <div className="space-y-1.5">
+          <nav className="text-xs text-[#626E76] flex items-center gap-1.5">
+            <Link href="/history" className="hover:text-[#182126] hover:underline">
+              Riwayat
             </Link>
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-2xl font-extrabold text-slate-900">
-                Detail Pickup Bersama {pickup?.code || ""}
-              </h1>
-              {pickup && <GroupPickupStatusBadge status={pickup.status} />}
-            </div>
-            <p className="text-sm text-slate-600 mt-0.5">
-              Rincian pembagian biaya transparan per penjual dan daftar paket
-              yang ikut serta.
-            </p>
-          </div>
+            <span>/</span>
+            <span className="text-[#182126] font-medium">Detail pickup</span>
+          </nav>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCopyShareLink}
-            className="gap-2"
-          >
-            {copied ? (
-              <>
-                <Check className="h-4 w-4 text-emerald-600" />
-                <span className="text-emerald-700">Link Tersalin!</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="h-4 w-4 text-teal-700" />
-                <span>Bagikan Link Pickup</span>
-              </>
-            )}
-          </Button>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-2xl font-bold tracking-tight text-[#182126]">
+                  Pickup {pickup?.code || pickupId}
+                </h1>
+                {pickup && <GroupPickupStatusBadge status={pickup.status} />}
+              </div>
+              {pickup && (
+                <p className="text-xs text-[#626E76]">
+                  {pickup.clusterName} ({pickup.clusterCode}) •{" "}
+                  {COURIER_LABELS[pickup.courier] || pickup.courier} •{" "}
+                  {formatDateId(pickup.pickupDate, true)}, Pukul {pickup.pickupTime} WIB (
+                  {PICKUP_WINDOW_LABELS[pickup.pickupWindow]?.label})
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyShareLink}
+                className="gap-1.5 text-xs h-8"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-[#20734D]" />
+                    <span>Link tersalin</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-3.5 w-3.5 text-[#626E76]" />
+                    <span>Bagikan</span>
+                  </>
+                )}
+              </Button>
+              {pickup && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleExportCsv}
+                  className="gap-1.5 text-xs h-8"
+                >
+                  <Download className="h-3.5 w-3.5 text-[#626E76]" />
+                  <span>Ekspor</span>
+                </Button>
+              )}
+
+              {/* Action Admin Operasional */}
+              {isAdminRole && pickup && pickup.status !== "COMPLETED" && pickup.status !== "CANCELLED" && (
+                <Button
+                  size="sm"
+                  variant="default"
+                  disabled={actionMutation.isPending}
+                  onClick={() =>
+                    actionMutation.mutate({ action: "COMPLETE_PICKUP" })
+                  }
+                  className="h-8 text-xs font-semibold"
+                >
+                  Konfirmasi Selesai
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
 
         {feedback && (
           <div
-            className={`rounded-xl border p-4 text-sm font-medium flex items-center justify-between ${
+            className={`rounded border px-3 py-2 text-xs font-medium flex items-center justify-between ${
               feedback.type === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                : "border-red-200 bg-red-50 text-red-800"
+                ? "border-[#C3E6D3] bg-[#EAF5EF] text-[#144D33]"
+                : "border-[#F8D2CF] bg-[#FDF2F1] text-[#911D13]"
             }`}
           >
             <span>{feedback.text}</span>
             <button
               type="button"
               onClick={() => setFeedback(null)}
-              className="text-xs font-bold underline ml-4"
+              className="text-[11px] underline ml-3"
             >
               Tutup
             </button>
@@ -163,355 +236,337 @@ export default function PickupDetailPage() {
         )}
 
         {isLoading ? (
-          <div className="h-64 rounded-xl bg-slate-200/70 animate-pulse" />
+          <div className="h-64 rounded border border-[#E3E7EA] bg-white animate-pulse" />
         ) : error || !pickup ? (
-          <Card>
-            <CardContent className="py-12 text-center space-y-3">
-              <p className="text-base font-bold text-slate-800">
-                Data Pickup Bersama Tidak Ditemukan
-              </p>
-              <Link href="/dashboard">
-                <Button size="sm">Kembali ke Dashboard</Button>
-              </Link>
-            </CardContent>
-          </Card>
+          <div className="rounded border border-[#E3E7EA] bg-white p-8 text-center space-y-2">
+            <p className="text-sm font-semibold text-[#182126]">
+              Data pickup tidak ditemukan
+            </p>
+            <p className="text-xs text-[#626E76]">
+              Kode pickup tidak terdaftar atau telah dihapus.
+            </p>
+          </div>
         ) : (
           <>
-            {/* Ringkasan Utama Pickup Bersama */}
-            <Card className="border-t-4 border-t-teal-700">
-              <CardContent className="p-5 sm:p-6 space-y-5">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-sm font-extrabold bg-teal-900 text-white px-2.5 py-0.5 rounded">
-                        {pickup.code}
+            {/* B. Operational Summary Strip (Single Baris dengan Divider Vertikal) */}
+            <div className="rounded border border-[#E3E7EA] bg-white p-4">
+              <div className="grid grid-cols-2 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-[#E3E7EA]">
+                <div className="py-2 md:py-0 md:px-4 first:pl-0">
+                  <span className="text-[11px] font-medium text-[#626E76] block">
+                    Jadwal pickup
+                  </span>
+                  <p className="text-sm font-semibold text-[#182126] mt-0.5 tabular-nums">
+                    {formatDateId(pickup.pickupDate)} • {pickup.pickupTime} WIB
+                  </p>
+                  <span className="text-[11px] text-[#626E76]">
+                    {PICKUP_WINDOW_LABELS[pickup.pickupWindow]?.label}
+                  </span>
+                </div>
+
+                <div className="py-2 md:py-0 md:px-4">
+                  <span className="text-[11px] font-medium text-[#626E76] block">
+                    Total paket / penjual
+                  </span>
+                  <p className="text-sm font-semibold text-[#182126] mt-0.5 tabular-nums">
+                    {pickup.totalPackages} paket / {pickup.payments.length} penjual
+                  </p>
+                  <span className="text-[11px] text-[#626E76]">
+                    Konsolidasi pickup
+                  </span>
+                </div>
+
+                <div className="py-2 md:py-0 md:px-4">
+                  <span className="text-[11px] font-medium text-[#626E76] block">
+                    Total berat
+                  </span>
+                  <p className="text-sm font-semibold text-[#182126] mt-0.5 tabular-nums">
+                    {formatWeight(pickup.totalWeightGram)}
+                  </p>
+                  <span className="text-[11px] text-[#626E76] tabular-nums">
+                    {pickup.totalWeightGram.toLocaleString("id-ID")} gram
+                  </span>
+                </div>
+
+                <div className="py-2 md:py-0 md:px-4">
+                  <span className="text-[11px] font-medium text-[#626E76] block">
+                    Biaya pickup kurir
+                  </span>
+                  <p className="text-sm font-semibold text-[#182126] mt-0.5 tabular-nums">
+                    {formatRupiah(pickup.basePickupFee)}
+                  </p>
+                  <span className="text-[11px] text-[#626E76]">
+                    Fee platform {pickup.platformFeePercent}%
+                  </span>
+                </div>
+
+                <div className="py-2 md:py-0 md:px-4 last:pr-0">
+                  <span className="text-[11px] font-medium text-[#626E76] block">
+                    Total tagihan grup
+                  </span>
+                  <p className="text-sm font-bold text-[#17685F] mt-0.5 tabular-nums">
+                    {formatRupiah(pickup.totalCost)}
+                  </p>
+                  <span className="text-[11px] text-[#626E76]">
+                    {pickup.costLocked ? "Biaya terkunci" : "Estimasi terkunci"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Titik Kumpul & Koordinator Satu Baris Metadata di Bawah */}
+              <div className="mt-3.5 pt-3 border-t border-[#E3E7EA] flex flex-wrap items-center justify-between gap-2 text-xs text-[#626E76]">
+                <div className="flex items-center gap-1.5">
+                  <span>Titik kumpul:</span>
+                  <strong className="text-[#182126] font-medium">{pickup.centerAddress}</strong>
+                  <span>• Koordinator:</span>
+                  <strong className="text-[#182126] font-medium">{pickup.adminName}</strong>
+                </div>
+                {pickup.roundingDiff !== 0 && (
+                  <span className="text-[11px] tabular-nums">
+                    Selisih pembulatan: {formatRupiah(pickup.roundingDiff)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* C. Rincian Biaya Menjadi Fokus Utama */}
+            <div className="rounded border border-[#E3E7EA] bg-white overflow-hidden">
+              <div className="p-4 border-b border-[#E3E7EA] flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-[#FAFAFA]">
+                <div>
+                  <h2 className="text-sm font-semibold text-[#182126]">
+                    Pembagian biaya
+                  </h2>
+                  <p className="text-xs text-[#626E76] mt-0.5">
+                    Biaya dibagi berdasarkan berat paket.{" "}
+                    {pickup.costLocked && (
+                      <span className="text-[#20734D] font-medium">
+                        Biaya dikunci setelah pickup selesai.
                       </span>
-                      <Badge variant="teal">
-                        {COURIER_LABELS[pickup.courier] || pickup.courier}
-                      </Badge>
-                      {pickup.costLocked && (
-                        <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 gap-1">
-                          <Lock className="h-3 w-3" />
-                          Biaya Terkunci Permanen
-                        </Badge>
-                      )}
-                      {pickup.forcedBelowMin && (
-                        <Badge variant="orange">
-                          Dibuat Paksa di Bawah Kuota Minimum
-                        </Badge>
-                      )}
-                    </div>
-                    <h2 className="text-lg font-extrabold text-slate-900 pt-1">
-                      Cluster: {pickup.clusterName} ({pickup.clusterCode})
-                    </h2>
-                    <p className="text-xs text-slate-600 flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 text-teal-700" />
-                      Titik Kumpul: {pickup.centerAddress} • Koordinator:{" "}
-                      <strong>{pickup.adminName}</strong>
-                    </p>
-                  </div>
-
-                  {/* Kontrol Admin Cluster jika belum COMPLETED */}
-                  {isAdminRole &&
-                    pickup.status !== "COMPLETED" &&
-                    pickup.status !== "CANCELLED" && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        {pickup.status === "SCHEDULED" && (
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            className="gap-1.5"
-                            disabled={actionMutation.isPending}
-                            onClick={() =>
-                              actionMutation.mutate({ action: "START_PICKUP" })
-                            }
-                          >
-                            <Play className="h-3.5 w-3.5" />
-                            <span>Tandai Kurir Sedang Menjemput</span>
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="cta"
-                          className="gap-1.5"
-                          disabled={actionMutation.isPending}
-                          onClick={() =>
-                            actionMutation.mutate({ action: "COMPLETE_PICKUP" })
-                          }
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span>Konfirmasi Pickup Selesai & Kunci Biaya</span>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="gap-1"
-                          disabled={actionMutation.isPending}
-                          onClick={() =>
-                            actionMutation.mutate({ action: "CANCEL_PICKUP" })
-                          }
-                        >
-                          <XCircle className="h-3.5 w-3.5" />
-                          <span>Batalkan</span>
-                        </Button>
-                      </div>
                     )}
+                  </p>
                 </div>
 
-                {/* Grid Metrik Pickup */}
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-                  <div className="rounded-xl bg-slate-50 p-3 border border-slate-200/80">
-                    <span className="text-slate-500 block">
-                      Tanggal & Jam Pickup
-                    </span>
-                    <strong className="text-sm text-slate-900 mt-0.5 block">
-                      {formatDateId(pickup.pickupDate)} • {pickup.pickupTime}{" "}
-                      WIB
-                    </strong>
-                    <span className="text-[11px] text-slate-500">
-                      Jendela:{" "}
-                      {PICKUP_WINDOW_LABELS[pickup.pickupWindow]?.label}
-                    </span>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 p-3 border border-slate-200/80">
-                    <span className="text-slate-500 block">
-                      Total Paket & Penjual
-                    </span>
-                    <strong className="text-sm text-slate-900 mt-0.5 block">
-                      {pickup.totalPackages} Paket ({pickup.payments.length}{" "}
-                      UMKM)
-                    </strong>
-                    <span className="text-[11px] text-slate-500">
-                      1x Penjemputan Kolektif
-                    </span>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 p-3 border border-slate-200/80">
-                    <span className="text-slate-500 block">
-                      Total Berat Konsolidasi
-                    </span>
-                    <strong className="text-sm text-teal-800 mt-0.5 block">
-                      {formatWeight(pickup.totalWeightGram)}
-                    </strong>
-                    <span className="text-[11px] text-slate-500">
-                      ({pickup.totalWeightGram.toLocaleString("id-ID")} gram)
-                    </span>
-                  </div>
-
-                  <div className="rounded-xl bg-slate-50 p-3 border border-slate-200/80">
-                    <span className="text-slate-500 block">
-                      Biaya Pickup Dasar + Fee
-                    </span>
-                    <strong className="text-sm text-slate-900 mt-0.5 block">
-                      {formatRupiah(pickup.basePickupFee)} +{" "}
-                      {pickup.platformFeePercent}%
-                    </strong>
-                    <span className="text-[11px] text-slate-500">
-                      Fee Platform:{" "}
-                      {formatRupiah(
-                        Math.round(
-                          pickup.basePickupFee *
-                            (pickup.platformFeePercent / 100)
-                        )
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="rounded-xl bg-teal-900 text-white p-3">
-                    <span className="text-teal-200 block">
-                      Total Biaya Pickup + Fee
-                    </span>
-                    <strong className="text-base text-orange-400 mt-0.5 block">
-                      {formatRupiah(pickup.totalCost)}
-                    </strong>
-                    <span className="text-[11px] text-teal-100">
-                      Selisih Pembulatan: {formatRupiah(pickup.roundingDiff)}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Tabel Rincian Pembagian Biaya Per Penjual (4.6) */}
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Calculator className="h-5 w-5 text-teal-700" />
-                      Rincian Pembagian Biaya Per Penjual
-                    </CardTitle>
-                    <CardDescription>
-                      Rumus:{" "}
-                      <code className="bg-slate-100 px-1.5 py-0.5 rounded text-teal-900 font-semibold">
-                        biaya_penjual = (berat_penjual / total_berat) ×
-                        biaya_pickup × (1 + fee_platform)
-                      </code>
-                    </CardDescription>
-                  </div>
-                  {pickup.costLocked && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
-                      <ShieldCheck className="h-4 w-4" />
-                      Telah Dikunci Sesuai Aturan Bisnis
-                    </span>
+                <button
+                  type="button"
+                  onClick={() => setCalculationOpen(!calculationOpen)}
+                  className="inline-flex items-center gap-1 text-xs text-[#17685F] hover:underline self-start sm:self-auto font-medium"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                  <span>{calculationOpen ? "Tutup perhitungan" : "Lihat perhitungan"}</span>
+                  {calculationOpen ? (
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5" />
                   )}
+                </button>
+              </div>
+
+              {/* Disclosure Perhitungan */}
+              {calculationOpen && (
+                <div className="p-4 bg-[#F8FAFA] border-b border-[#E3E7EA] text-xs text-[#182126] space-y-2">
+                  <p className="font-semibold text-xs">Rumus Operasional:</p>
+                  <p className="font-mono text-[11px] text-[#10534C] bg-white p-2 rounded border border-[#E3E7EA]">
+                    biaya_penjual = (berat_penjual / total_berat) × biaya_pickup × (1 + fee_platform)
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-[#626E76] text-[11px]">
+                    <li>Basis total berat pickup: <strong>{formatWeight(pickup.totalWeightGram)}</strong></li>
+                    <li>Biaya pickup kurir dasar: <strong>{formatRupiah(pickup.basePickupFee)}</strong></li>
+                    <li>Fee platform: <strong>{pickup.platformFeePercent}%</strong> ({formatRupiah(Math.round(pickup.basePickupFee * (pickup.platformFeePercent / 100)))})</li>
+                    <li>Pembulatan nominal tagihan ke Rupiah terdekat, dengan jaminan total tidak melebihi plafon pickup.</li>
+                  </ul>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="overflow-x-auto rounded-xl border border-slate-200">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                      <tr>
-                        <th className="py-3 px-3">Penjual & Toko</th>
-                        <th className="py-3 px-3 text-center">Jml Paket</th>
-                        <th className="py-3 px-3 text-right">Berat Penjual</th>
-                        <th className="py-3 px-3 text-right">% Berat</th>
-                        <th className="py-3 px-3 text-right">
-                          Biaya Pickup Sebelum Fee
-                        </th>
-                        <th className="py-3 px-3 text-right">
-                          Fee Platform ({pickup.platformFeePercent}%)
-                        </th>
-                        <th className="py-3 px-3 text-right">Total Tagihan</th>
-                        <th className="py-3 px-3 text-right">
-                          Penghematan
-                        </th>
-                        <th className="py-3 px-3 text-center">Status Bayar</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {pickup.payments.map(
-                        (pay: {
-                          id: string;
-                          sellerId: string;
-                          sellerName: string;
-                          storeName: string;
-                          packageCount: number;
-                          totalWeightGram: number;
-                          weightPercent: number;
-                          costShare: number;
-                          platformFee: number;
-                          amount: number;
-                          estimatedSavings: number;
-                          status: string;
-                        }) => {
-                          const isMe = pay.sellerId === user?.id;
-                          return (
-                            <tr
-                              key={pay.id}
-                              className={
-                                isMe
-                                  ? "bg-teal-50/90 font-semibold"
-                                  : "hover:bg-slate-50"
-                              }
-                            >
-                              <td className="py-3 px-3">
-                                <div className="flex items-center gap-1.5">
-                                  <span className="font-bold text-slate-900">
-                                    {pay.sellerName}
+              )}
+
+              {/* Tabel Desktop Pembagian Biaya */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#F6F7F8] text-[#626E76] font-semibold border-b border-[#E3E7EA]">
+                    <tr>
+                      <th className="py-3 px-4">Penjual / Toko</th>
+                      <th className="py-3 px-3 text-right">Paket</th>
+                      <th className="py-3 px-3 text-right">Berat</th>
+                      <th className="py-3 px-3 text-right">Porsi berat</th>
+                      <th className="py-3 px-3 text-right">Biaya pickup</th>
+                      <th className="py-3 px-3 text-right">Fee</th>
+                      <th className="py-3 px-3 text-right font-bold text-[#182126]">Total</th>
+                      <th className="py-3 px-4 text-center">Status bayar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E3E7EA]">
+                    {pickup.payments.map(
+                      (pay: {
+                        id: string;
+                        sellerId: string;
+                        sellerName: string;
+                        storeName: string;
+                        packageCount: number;
+                        totalWeightGram: number;
+                        weightPercent: number;
+                        costShare: number;
+                        platformFee: number;
+                        amount: number;
+                        status: string;
+                      }) => {
+                        const isMe = pay.sellerId === user?.id;
+                        return (
+                          <tr
+                            key={pay.id}
+                            className={cn(
+                              "transition-colors h-14",
+                              isMe ? "bg-[#F4F9F8]" : "hover:bg-[#FAFAFA]"
+                            )}
+                          >
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-semibold text-[#182126]">
+                                  {pay.sellerName}
+                                </span>
+                                {isMe && (
+                                  <span className="rounded bg-[#E3E7EA] px-1.5 py-0.2 text-[10px] font-medium text-[#182126]">
+                                    Anda
                                   </span>
-                                  {isMe && (
-                                    <Badge className="bg-teal-700 text-white border-none text-[10px]">
-                                      Anda
-                                    </Badge>
+                                )}
+                              </div>
+                              <span className="text-[11px] text-[#626E76] block mt-0.5">
+                                {pay.storeName}
+                              </span>
+                            </td>
+                            <td className="py-3 px-3 text-right tabular-nums text-[#182126]">
+                              {pay.packageCount}
+                            </td>
+                            <td className="py-3 px-3 text-right tabular-nums text-[#182126]">
+                              {formatWeight(pay.totalWeightGram)}
+                            </td>
+                            <td className="py-3 px-3 text-right tabular-nums text-[#626E76]">
+                              {pay.weightPercent}%
+                            </td>
+                            <td className="py-3 px-3 text-right tabular-nums text-[#626E76]">
+                              {formatRupiah(pay.costShare)}
+                            </td>
+                            <td className="py-3 px-3 text-right tabular-nums text-[#626E76]">
+                              {formatRupiah(pay.platformFee)}
+                            </td>
+                            <td className="py-3 px-3 text-right font-semibold text-[#182126] tabular-nums">
+                              {formatRupiah(pay.amount)}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              {pay.status === "PAID" ? (
+                                <span className="inline-flex items-center gap-1.5 text-xs text-[#20734D] font-medium">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-[#20734D]" />
+                                  Lunas
+                                </span>
+                              ) : (
+                                <div className="inline-flex items-center gap-2">
+                                  <span className="inline-flex items-center gap-1.5 text-xs text-[#9A6700] font-medium">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-[#9A6700]" />
+                                    Belum bayar
+                                  </span>
+                                  {(isMe || isAdminRole) && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        actionMutation.mutate({
+                                          action: "MARK_PAYMENT_PAID",
+                                          paymentId: pay.id,
+                                        })
+                                      }
+                                      className="rounded border border-[#E3E7EA] bg-white px-2 py-0.5 text-[11px] font-medium text-[#182126] hover:bg-[#F6F7F8]"
+                                    >
+                                      Tandai lunas
+                                    </button>
                                   )}
                                 </div>
-                                <span className="text-[11px] text-slate-500 block">
-                                  {pay.storeName}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                {pay.packageCount} paket
-                              </td>
-                              <td className="py-3 px-3 text-right font-medium">
-                                {formatWeight(pay.totalWeightGram)}
-                              </td>
-                              <td className="py-3 px-3 text-right">
-                                {pay.weightPercent}%
-                              </td>
-                              <td className="py-3 px-3 text-right">
-                                {formatRupiah(pay.costShare)}
-                              </td>
-                              <td className="py-3 px-3 text-right">
-                                {formatRupiah(pay.platformFee)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-extrabold text-teal-900 text-sm">
-                                {formatRupiah(pay.amount)}
-                              </td>
-                              <td className="py-3 px-3 text-right font-bold text-emerald-700">
-                                {formatRupiah(pay.estimatedSavings)}
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                {pay.status === "PAID" ? (
-                                  <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300">
-                                    LUNAS
-                                  </Badge>
-                                ) : (
-                                  <div className="flex items-center justify-center gap-1.5">
-                                    <Badge variant="orange">BELUM BAYAR</Badge>
-                                    {(isMe || isAdminRole) && (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-7 px-2 text-[11px]"
-                                        onClick={() =>
-                                          actionMutation.mutate({
-                                            action: "MARK_PAYMENT_PAID",
-                                            paymentId: pay.id,
-                                          })
-                                        }
-                                      >
-                                        Tandai Lunas
-                                      </Button>
-                                    )}
-                                  </div>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        }
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      }
+                    )}
+                  </tbody>
+                  {/* Footer Total yang Cocok dengan Transaksi */}
+                  <tfoot className="border-t-2 border-[#E3E7EA] bg-[#F6F7F8] font-semibold text-[#182126]">
+                    <tr>
+                      <td className="py-3 px-4">Total</td>
+                      <td className="py-3 px-3 text-right tabular-nums">
+                        {pickup.totalPackages}
+                      </td>
+                      <td className="py-3 px-3 text-right tabular-nums">
+                        {formatWeight(pickup.totalWeightGram)}
+                      </td>
+                      <td className="py-3 px-3 text-right tabular-nums">100%</td>
+                      <td className="py-3 px-3 text-right tabular-nums">
+                        {formatRupiah(
+                          pickup.payments.reduce(
+                            (s: number, p: { costShare: number }) => s + p.costShare,
+                            0
+                          )
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-right tabular-nums">
+                        {formatRupiah(
+                          pickup.payments.reduce(
+                            (s: number, p: { platformFee: number }) => s + p.platformFee,
+                            0
+                          )
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-right font-bold text-[#17685F] tabular-nums">
+                        {formatRupiah(pickup.totalCost)}
+                      </td>
+                      <td className="py-3 px-4" />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
 
-                {/* Catatan Pembulatan Transparan */}
-                <div className="rounded-xl bg-slate-50 border border-slate-200 p-3.5 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <span>
-                    💡 <strong>Keterangan Pembulatan:</strong> Pembulatan ke
-                    Rupiah terdekat. Total tagihan penjual dijamin tidak
-                    melebihi plafon Biaya Pickup + Fee Platform (
-                    {formatRupiah(pickup.totalCost)}).
-                  </span>
-                  <span className="font-bold text-slate-800 shrink-0">
-                    Selisih / Sisa Pembulatan Admin Cluster:{" "}
-                    {formatRupiah(pickup.roundingDiff)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+            {/* D. Paket & Aktivitas (Tabs Sederhana) */}
+            <div className="rounded border border-[#E3E7EA] bg-white">
+              <div className="border-b border-[#E3E7EA] px-4 flex items-center gap-6">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("packages")}
+                  className={cn(
+                    "py-3 text-xs font-semibold border-b-2 -mb-px transition-colors",
+                    activeTab === "packages"
+                      ? "border-[#17685F] text-[#17685F]"
+                      : "border-transparent text-[#626E76] hover:text-[#182126]"
+                  )}
+                >
+                  Daftar paket ({pickup.items.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("logs")}
+                  className={cn(
+                    "py-3 text-xs font-semibold border-b-2 -mb-px transition-colors",
+                    activeTab === "logs"
+                      ? "border-[#17685F] text-[#17685F]"
+                      : "border-transparent text-[#626E76] hover:text-[#182126]"
+                  )}
+                >
+                  Aktivitas ({logs.length})
+                </button>
+              </div>
 
-            {/* Daftar Paket yang Ikut Serta & Activity Log */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-8">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Package className="h-5 w-5 text-teal-700" />
-                      Daftar Seluruh Paket yang Ikut Serta (
-                      {pickup.items.length} Paket)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="divide-y divide-slate-100">
+              {activeTab === "packages" && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#F6F7F8] text-[#626E76] font-semibold border-b border-[#E3E7EA]">
+                      <tr>
+                        <th className="py-2.5 px-4">Pengirim</th>
+                        <th className="py-2.5 px-4">Penerima & Alamat</th>
+                        <th className="py-2.5 px-4 text-right">Berat</th>
+                        <th className="py-2.5 px-4 text-right">Alokasi biaya</th>
+                        <th className="py-2.5 px-4 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E3E7EA]">
                       {pickup.items.map(
                         (item: {
                           id: string;
                           sellerName: string;
                           storeName: string;
                           recipientName: string;
-                          recipientPhone: string;
                           destinationAddress: string;
                           city: string;
                           province: string;
@@ -519,89 +574,78 @@ export default function PickupDetailPage() {
                           totalCharge: number;
                           draftStatus: string;
                         }) => (
-                          <div
-                            key={item.id}
-                            className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
-                          >
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-teal-800">
-                                  {item.storeName} ({item.sellerName})
-                                </span>
-                                <span>→</span>
-                                <span className="font-bold text-slate-900">
-                                  {item.recipientName}
-                                </span>
-                              </div>
-                              <p className="text-slate-500">
-                                Tujuan: {item.destinationAddress}, {item.city},{" "}
-                                {item.province} ({item.recipientPhone})
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="font-semibold text-slate-700">
-                                {formatWeight(item.weightGram)}
+                          <tr key={item.id} className="hover:bg-[#FAFAFA]">
+                            <td className="py-2.5 px-4">
+                              <span className="font-semibold text-[#182126] block">
+                                {item.storeName}
                               </span>
-                              <span className="font-bold text-teal-900">
-                                {formatRupiah(item.totalCharge)}
+                              <span className="text-[11px] text-[#626E76]">
+                                {item.sellerName}
                               </span>
+                            </td>
+                            <td className="py-2.5 px-4">
+                              <span className="font-medium text-[#182126] block">
+                                {item.recipientName}
+                              </span>
+                              <span className="text-[11px] text-[#626E76]">
+                                {item.city}, {item.province}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-4 text-right tabular-nums text-[#182126]">
+                              {formatWeight(item.weightGram)}
+                            </td>
+                            <td className="py-2.5 px-4 text-right font-medium tabular-nums text-[#182126]">
+                              {formatRupiah(item.totalCharge)}
+                            </td>
+                            <td className="py-2.5 px-4 text-center">
                               <DraftStatusBadge status={item.draftStatus} />
-                            </div>
+                            </td>
+                          </tr>
+                        )
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {activeTab === "logs" && (
+                <div className="p-4">
+                  {logs.length === 0 ? (
+                    <p className="text-xs text-[#8D98A0] text-center py-4">
+                      Tidak ada catatan aktivitas untuk pickup ini.
+                    </p>
+                  ) : (
+                    <div className="space-y-2 text-xs">
+                      {logs.map(
+                        (l: {
+                          id: string;
+                          actorName: string;
+                          summary: string;
+                          details?: string;
+                          createdAt: string;
+                        }) => (
+                          <div
+                            key={l.id}
+                            className="rounded border border-[#E3E7EA] p-3 space-y-1 bg-[#FAFAFA]"
+                          >
+                            <p className="font-medium text-[#182126]">
+                              {l.summary}
+                            </p>
+                            {l.details && (
+                              <p className="text-[11px] text-[#626E76]">
+                                {l.details}
+                              </p>
+                            )}
+                            <p className="text-[11px] text-[#8D98A0]">
+                              Oleh {l.actorName} • {formatDateId(l.createdAt)}
+                            </p>
                           </div>
                         )
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="lg:col-span-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <History className="h-5 w-5 text-teal-700" />
-                      Log Aktivitas Pickup
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {logs.length === 0 ? (
-                      <p className="text-xs text-slate-500">
-                        Belum ada catatan log untuk pickup ini.
-                      </p>
-                    ) : (
-                      <div className="space-y-3 text-xs">
-                        {logs.map(
-                          (l: {
-                            id: string;
-                            actorName: string;
-                            summary: string;
-                            details?: string;
-                            createdAt: string;
-                          }) => (
-                            <div
-                              key={l.id}
-                              className="rounded-lg border border-slate-100 bg-slate-50 p-3 space-y-1"
-                            >
-                              <p className="font-semibold text-slate-900">
-                                {l.summary}
-                              </p>
-                              {l.details && (
-                                <p className="text-[11px] text-slate-600">
-                                  {l.details}
-                                </p>
-                              )}
-                              <p className="text-[10px] text-slate-400">
-                                Oleh {l.actorName} •{" "}
-                                {formatDateId(l.createdAt)}
-                              </p>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           </>
         )}
@@ -609,4 +653,3 @@ export default function PickupDetailPage() {
     </AppShell>
   );
 }
-

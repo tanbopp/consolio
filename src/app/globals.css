@@ -4,34 +4,33 @@
 
 @layer base {
   :root {
-    --background: 180 20% 99%;
-    --foreground: 215 28% 17%;
-    --card: 0 0% 100%;
-    --card-foreground: 215 28% 17%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
-    --primary: 175 77% 26%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 173 45% 94%;
-    --secondary-foreground: 175 77% 20%;
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 45%;
-    --accent: 21 90% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 214 25% 88%;
-    --input: 214 25% 88%;
-    --ring: 175 77% 26%;
-    --radius: 0.75rem;
+    --background: #F6F7F8;
+    --surface: #FFFFFF;
+    --foreground: #182126;
+    --secondary-text: #626E76;
+    --border: #E3E7EA;
+    --accent: #17685F;
+    --accent-hover: #10534C;
+    --success: #20734D;
+    --warning: #9A6700;
+    --danger: #B42318;
+    --radius: 6px;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: #E3E7EA;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-teal-700 selection:text-white;
+    background-color: #F6F7F8;
+    color: #182126;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }

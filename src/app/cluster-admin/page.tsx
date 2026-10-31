@@ -4,30 +4,14 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Users,
-  Package,
-  Truck,
-  Scale,
-  Wallet,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
+  Check,
+  X,
   ExternalLink,
-  CalendarClock,
-  ShieldCheck,
 } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  Badge,
   DraftStatusBadge,
   GroupPickupStatusBadge,
 } from "@/components/ui/badge";
@@ -44,7 +28,7 @@ export default function ClusterAdminDashboardPage() {
     text: string;
   } | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["dashboard"],
     queryFn: async () => {
       const res = await fetch("/api/dashboard");
@@ -53,7 +37,6 @@ export default function ClusterAdminDashboardPage() {
     },
   });
 
-  // Mutation: Setujui / Tolak permintaan gabung cluster
   const moderateMemberMutation = useMutation({
     mutationFn: async (payload: {
       memberId: string;
@@ -78,7 +61,6 @@ export default function ClusterAdminDashboardPage() {
     },
   });
 
-  // Mutation: Buat Jadwal Pickup Bersama dari Batch
   const createPickupMutation = useMutation({
     mutationFn: async (payload: {
       clusterId: string;
@@ -108,7 +90,6 @@ export default function ClusterAdminDashboardPage() {
     },
   });
 
-  // Mutation: Konfirmasi Pickup Bersama Selesai (COMPLETED) atau Batal
   const updatePickupMutation = useMutation({
     mutationFn: async (payload: { pickupId: string; action: string }) => {
       const res = await fetch("/api/pickups", {
@@ -138,589 +119,432 @@ export default function ClusterAdminDashboardPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">
-              Dashboard Admin Cluster
+            <h1 className="text-2xl font-bold tracking-tight text-[#182126]">
+              Operasional Admin Cluster
             </h1>
-            <p className="text-sm text-slate-600">
-              Kelola persetujuan anggota, pantau kuota konsolidasi paket, buat
-              jadwal Pickup Bersama, dan konfirmasi penjemputan kurir.
+            <p className="text-xs text-[#626E76] mt-0.5">
+              Persetujuan anggota penjual, penjadwalan pickup bersama, dan konfirmasi penjemputan kurir.
             </p>
           </div>
           <Link href="/cluster-admin/manage">
-            <Button variant="secondary" className="gap-1.5">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Pengaturan Cluster & Semua Draft</span>
+            <Button variant="outline" size="sm" className="h-8 text-xs font-semibold">
+              <span>Pengaturan Cluster</span>
             </Button>
           </Link>
         </div>
 
         {feedback && (
           <div
-            className={`rounded-xl border p-4 text-sm font-medium flex items-center justify-between ${
+            className={`rounded border px-3 py-2 text-xs font-medium flex items-center justify-between ${
               feedback.type === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                : "border-red-200 bg-red-50 text-red-800"
+                ? "border-[#C3E6D3] bg-[#EAF5EF] text-[#144D33]"
+                : "border-[#F8D2CF] bg-[#FDF2F1] text-[#911D13]"
             }`}
           >
             <span>{feedback.text}</span>
             <button
               type="button"
               onClick={() => setFeedback(null)}
-              className="text-xs font-bold underline ml-4"
+              className="text-[11px] underline ml-3"
             >
               Tutup
             </button>
           </div>
         )}
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-24 rounded-xl bg-slate-200/70 animate-pulse"
-              />
-            ))}
-          </div>
-        ) : (
-          <>
-            {/* 5 Kartu Statistik Utama Admin Cluster (4.8) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <Card className="border-l-4 border-l-teal-700">
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-500">
-                      Penjual Aktif
-                    </span>
-                    <Users className="h-4 w-4 text-teal-700" />
-                  </div>
-                  <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                    {stats?.activeSellersCount || 0} UMKM
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {pendingRequests.length} permintaan menunggu ACC
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-l-4 border-l-orange-500">
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-500">
-                      Draft Aktif Hari Ini
-                    </span>
-                    <Package className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                    {stats?.activeDraftsTodayCount || 0} Paket
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Dalam {clusterBatches.length} grup antrean
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-500">
-                      Jumlah Pickup Bersama
-                    </span>
-                    <Truck className="h-4 w-4 text-indigo-600" />
-                  </div>
-                  <p className="mt-2 text-2xl font-extrabold text-slate-900">
-                    {stats?.totalGroupPickupsCount || 0} Kali
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    {pickupsToConfirm.length} perlu dikonfirmasi
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-500">
-                      Total Berat Terkonsolidasi
-                    </span>
-                    <Scale className="h-4 w-4 text-emerald-600" />
-                  </div>
-                  <p className="mt-2 text-2xl font-extrabold text-teal-900">
-                    {formatWeight(stats?.totalConsolidatedWeightGram || 0)}
-                  </p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Dari seluruh pickup selesai
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-teal-900 text-white border-none">
-                <CardContent className="pt-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-teal-200">
-                      Total Biaya Pickup
-                    </span>
-                    <Wallet className="h-4 w-4 text-orange-400" />
-                  </div>
-                  <p className="mt-2 text-2xl font-extrabold text-white">
-                    {formatRupiah(stats?.totalPickupCostRp || 0)}
-                  </p>
-                  <p className="text-[11px] text-teal-200 mt-0.5">
-                    Termasuk fee platform
-                  </p>
-                </CardContent>
-              </Card>
+        {/* Summary Strip Admin Cluster */}
+        <div className="rounded border border-[#E3E7EA] bg-white p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-[#E3E7EA]">
+            <div className="py-2 sm:py-0 sm:px-3 first:pl-0">
+              <span className="text-[11px] font-medium text-[#626E76] block">Penjual aktif</span>
+              <p className="text-lg font-bold text-[#182126] mt-0.5 tabular-nums">
+                {stats?.activeSellersCount || 0}
+              </p>
+              <span className="text-[11px] text-[#626E76]">
+                {pendingRequests.length} pending
+              </span>
             </div>
 
-            {/* Bagian 1: Daftar Pickup Bersama yang Perlu Dikonfirmasi Selesai */}
-            {pickupsToConfirm.length > 0 && (
-              <Card className="border-2 border-emerald-600 bg-emerald-50/30">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-700" />
-                    Daftar Pickup Bersama yang Perlu Dikonfirmasi (
-                    {pickupsToConfirm.length})
-                  </CardTitle>
-                  <CardDescription>
-                    Klik <strong>Konfirmasi Kurir Telah Pickup</strong> setelah
-                    kurir mengambil paket untuk mengunci pembagian biaya
-                    antarpenjual.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {pickupsToConfirm.map(
-                    (gp: {
-                      id: string;
-                      code: string;
-                      clusterName: string;
-                      courier: string;
-                      pickupDate: string;
-                      pickupTime: string;
-                      totalPackages: number;
-                      totalWeightGram: number;
-                      totalCost: number;
-                      status: string;
-                    }) => (
-                      <div
-                        key={gp.id}
-                        className="rounded-xl bg-white border border-emerald-200 p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={`/pickups/${gp.id}`}
-                              className="font-mono text-sm font-extrabold text-teal-900 hover:underline flex items-center gap-1"
-                            >
-                              <span>{gp.code}</span>
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </Link>
-                            <GroupPickupStatusBadge status={gp.status} />
-                            <Badge variant="teal">
-                              {COURIER_LABELS[gp.courier]}
-                            </Badge>
-                          </div>
-                          <p className="text-sm font-bold text-slate-900">
-                            {gp.clusterName} — {formatDateId(gp.pickupDate)}{" "}
-                            Pukul {gp.pickupTime} WIB
-                          </p>
-                          <p className="text-xs text-slate-600">
-                            {gp.totalPackages} Paket •{" "}
-                            {formatWeight(gp.totalWeightGram)} • Total Tagihan:{" "}
-                            <strong>{formatRupiah(gp.totalCost)}</strong>
-                          </p>
-                        </div>
+            <div className="py-2 sm:py-0 sm:px-3">
+              <span className="text-[11px] font-medium text-[#626E76] block">Draft hari ini</span>
+              <p className="text-lg font-bold text-[#182126] mt-0.5 tabular-nums">
+                {stats?.activeDraftsTodayCount || 0}
+              </p>
+              <span className="text-[11px] text-[#626E76]">
+                Dalam {clusterBatches.length} grup antrean
+              </span>
+            </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="cta"
-                            disabled={updatePickupMutation.isPending}
-                            onClick={() =>
-                              updatePickupMutation.mutate({
-                                pickupId: gp.id,
-                                action: "COMPLETE_PICKUP",
+            <div className="py-2 sm:py-0 sm:px-3">
+              <span className="text-[11px] font-medium text-[#626E76] block">Pickup bersama</span>
+              <p className="text-lg font-bold text-[#182126] mt-0.5 tabular-nums">
+                {stats?.totalGroupPickupsCount || 0} kali
+              </p>
+              <span className="text-[11px] text-[#626E76]">
+                {pickupsToConfirm.length} perlu konfirmasi
+              </span>
+            </div>
+
+            <div className="py-2 sm:py-0 sm:px-3">
+              <span className="text-[11px] font-medium text-[#626E76] block">Berat terkonsolidasi</span>
+              <p className="text-lg font-bold text-[#182126] mt-0.5 tabular-nums">
+                {formatWeight(stats?.totalConsolidatedWeightGram || 0)}
+              </p>
+              <span className="text-[11px] text-[#626E76]">
+                Total selesai
+              </span>
+            </div>
+
+            <div className="py-2 sm:py-0 sm:px-3 last:pr-0">
+              <span className="text-[11px] font-medium text-[#626E76] block">Total biaya pickup</span>
+              <p className="text-lg font-bold text-[#17685F] mt-0.5 tabular-nums">
+                {formatRupiah(stats?.totalPickupCostRp || 0)}
+              </p>
+              <span className="text-[11px] text-[#626E76]">
+                Termasuk fee platform
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 1. Pickup yang Perlu Dikonfirmasi */}
+        {pickupsToConfirm.length > 0 && (
+          <div className="space-y-3">
+            <h2 className="text-xs font-semibold text-[#182126] uppercase tracking-wider">
+              Pickup yang Perlu Dikonfirmasi ({pickupsToConfirm.length})
+            </h2>
+
+            <div className="rounded border border-[#E3E7EA] bg-white divide-y divide-[#E3E7EA]">
+              {pickupsToConfirm.map((gp: {
+                id: string;
+                code: string;
+                clusterName: string;
+                courier: string;
+                pickupDate: string;
+                pickupTime: string;
+                totalPackages: number;
+                totalWeightGram: number;
+                totalCost: number;
+                status: string;
+              }) => (
+                <div key={gp.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Link href={`/pickups/${gp.id}`} className="font-semibold text-xs text-[#17685F] hover:underline inline-flex items-center gap-1">
+                        <span>{gp.code}</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </Link>
+                      <GroupPickupStatusBadge status={gp.status} />
+                      <span className="text-xs text-[#626E76]">
+                        {COURIER_LABELS[gp.courier] || gp.courier}
+                      </span>
+                    </div>
+                    <p className="text-xs font-medium text-[#182126]">
+                      {gp.clusterName} — {formatDateId(gp.pickupDate)} Pukul {gp.pickupTime} WIB
+                    </p>
+                    <p className="text-xs text-[#626E76]">
+                      {gp.totalPackages} paket • {formatWeight(gp.totalWeightGram)} • Tagihan total: {formatRupiah(gp.totalCost)}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      disabled={updatePickupMutation.isPending}
+                      onClick={() =>
+                        updatePickupMutation.mutate({
+                          pickupId: gp.id,
+                          action: "COMPLETE_PICKUP",
+                        })
+                      }
+                      className="h-8 text-xs font-semibold"
+                    >
+                      Konfirmasi Kurir Telah Pickup
+                    </Button>
+                    <Link href={`/pickups/${gp.id}`}>
+                      <Button size="sm" variant="outline" className="h-8 text-xs">
+                        Rincian
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2. Antrean Grup Draft Paket (Jadwalkan Pickup) */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold text-[#182126] uppercase tracking-wider">
+            Antrean Draft Paket Menuju Jadwal Pickup
+          </h2>
+
+          {clusterBatches.length === 0 ? (
+            <div className="rounded border border-[#E3E7EA] bg-white p-6 text-center text-xs text-[#8D98A0]">
+              Tidak ada antrean draft paket yang menunggu dijadwalkan saat ini.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {clusterBatches.map((batch: {
+                groupKey: string;
+                clusterId: string;
+                clusterName: string;
+                clusterCode: string;
+                pickupDate: string;
+                pickupWindow: string;
+                courier: string;
+                totalPackages: number;
+                minPackages: number;
+                packageProgressPct: number;
+                totalWeightGram: number;
+                minTotalWeightGram: number;
+                weightProgressPct: number;
+                isReadyForPickup: boolean;
+                basePickupFee: number;
+                platformFeePercent: number;
+                sellerProjections: Array<{
+                  sellerId: string;
+                  sellerName: string;
+                  storeName: string;
+                  packageCount: number;
+                  weightGram: number;
+                  finalTotalCharge: number;
+                }>;
+              }) => {
+                const timeVal =
+                  pickupTimes[batch.groupKey] ||
+                  (batch.pickupWindow === "MORNING"
+                    ? "09:30"
+                    : batch.pickupWindow === "AFTERNOON"
+                    ? "13:30"
+                    : batch.pickupWindow === "EVENING"
+                    ? "16:00"
+                    : "19:30");
+
+                return (
+                  <div key={batch.groupKey} className="rounded border border-[#E3E7EA] bg-white overflow-hidden">
+                    <div className="p-4 border-b border-[#E3E7EA] flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-[#FAFAFA]">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-xs text-[#182126]">
+                            {batch.clusterCode} • {COURIER_LABELS[batch.courier] || batch.courier}
+                          </span>
+                          <span className="text-xs text-[#626E76]">
+                            {formatDateId(batch.pickupDate, true)} (
+                            {PICKUP_WINDOW_LABELS[batch.pickupWindow]?.label})
+                          </span>
+                          <DraftStatusBadge
+                            status={
+                              batch.isReadyForPickup
+                                ? "READY_FOR_PICKUP"
+                                : "QUEUED"
+                            }
+                          />
+                        </div>
+                        <p className="text-xs text-[#626E76]">
+                          {batch.totalPackages} paket ({formatWeight(batch.totalWeightGram)}) dari {batch.sellerProjections.length} penjual
+                        </p>
+                      </div>
+
+                      {/* Kontrol Penjadwalan */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span className="text-[#626E76]">Jam jemput:</span>
+                          <Input
+                            type="time"
+                            value={timeVal}
+                            onChange={(e) =>
+                              setPickupTimes({
+                                ...pickupTimes,
+                                [batch.groupKey]: e.target.value,
                               })
                             }
-                            className="gap-1.5"
+                            className="h-8 w-24 text-xs tabular-nums"
+                          />
+                        </div>
+
+                        {batch.isReadyForPickup ? (
+                          <Button
+                            size="sm"
+                            className="h-8 text-xs font-semibold"
+                            disabled={createPickupMutation.isPending}
+                            onClick={() =>
+                              createPickupMutation.mutate({
+                                clusterId: batch.clusterId,
+                                pickupDate: batch.pickupDate,
+                                pickupWindow: batch.pickupWindow,
+                                courier: batch.courier,
+                                pickupTime: timeVal,
+                                forceBelowMinimum: false,
+                              })
+                            }
                           >
-                            <CheckCircle2 className="h-4 w-4" />
-                            <span>
-                              Konfirmasi Kurir Telah Pickup (COMPLETED)
-                            </span>
+                            Buat Pickup Bersama
                           </Button>
-                          <Link href={`/pickups/${gp.id}`}>
-                            <Button size="sm" variant="outline">
-                              Lihat Rincian
-                            </Button>
-                          </Link>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs"
+                            onClick={() =>
+                              setForceConfirmKey(
+                                forceConfirmKey === batch.groupKey
+                                  ? null
+                                  : batch.groupKey
+                              )
+                            }
+                          >
+                            Paksa Jadwalkan
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Warning Konfirmasi Paksa */}
+                    {forceConfirmKey === batch.groupKey && !batch.isReadyForPickup && (
+                      <div className="p-3 bg-[#FEF7E6] border-b border-[#F9E2B6] text-xs text-[#734C00] flex items-center justify-between gap-3">
+                        <p>
+                          Syarat kuota minimum belum tercapai. Jika dijadwalkan sekarang, biaya pickup akan dibagi ke lebih sedikit penjual sehingga biaya per penjual lebih tinggi.
+                        </p>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setForceConfirmKey(null)}
+                            className="text-xs text-[#734C00] underline"
+                          >
+                            Batal
+                          </button>
+                          <Button
+                            size="sm"
+                            className="h-7 text-xs bg-[#9A6700] text-white hover:bg-[#734C00]"
+                            disabled={createPickupMutation.isPending}
+                            onClick={() =>
+                              createPickupMutation.mutate({
+                                clusterId: batch.clusterId,
+                                pickupDate: batch.pickupDate,
+                                pickupWindow: batch.pickupWindow,
+                                courier: batch.courier,
+                                pickupTime: timeVal,
+                                forceBelowMinimum: true,
+                              })
+                            }
+                          >
+                            Lanjutkan Jadwalkan
+                          </Button>
                         </div>
                       </div>
-                    )
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Bagian 2: Grup Draft Paket Menuju Jadwal Pickup Bersama */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <CalendarClock className="h-5 w-5 text-teal-700" />
-                  Grup Draft Paket Dalam Cluster (Buat Jadwal Pickup Bersama)
-                </CardTitle>
-                <CardDescription>
-                  Ketika kuota minimum tercapai, status otomatis menjadi{" "}
-                  <strong>Siap Pickup</strong>. Anda juga dapat memaksa membuat
-                  pickup bersama meskipun minimum belum tercapai.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {clusterBatches.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-6 text-center">
-                    Tidak ada grup draft yang menunggu dijadwalkan saat ini.
-                  </p>
-                ) : (
-                  clusterBatches.map(
-                    (batch: {
-                      groupKey: string;
-                      clusterId: string;
-                      clusterName: string;
-                      clusterCode: string;
-                      pickupDate: string;
-                      pickupWindow: string;
-                      courier: string;
-                      totalPackages: number;
-                      minPackages: number;
-                      packageProgressPct: number;
-                      totalWeightGram: number;
-                      minTotalWeightGram: number;
-                      weightProgressPct: number;
-                      isReadyForPickup: boolean;
-                      basePickupFee: number;
-                      platformFeePercent: number;
-                      sellerProjections: Array<{
-                        sellerId: string;
-                        sellerName: string;
-                        storeName: string;
-                        packageCount: number;
-                        weightGram: number;
-                        weightPercentage: number;
-                        finalTotalCharge: number;
-                      }>;
-                    }) => {
-                      const timeVal =
-                        pickupTimes[batch.groupKey] ||
-                        (batch.pickupWindow === "MORNING"
-                          ? "09:30"
-                          : batch.pickupWindow === "AFTERNOON"
-                          ? "13:30"
-                          : batch.pickupWindow === "EVENING"
-                          ? "16:00"
-                          : "19:30");
-
-                      return (
-                        <div
-                          key={batch.groupKey}
-                          className={`rounded-xl border p-4 sm:p-5 space-y-4 ${
-                            batch.isReadyForPickup
-                              ? "border-2 border-amber-400 bg-amber-50/30"
-                              : "border-slate-200 bg-white"
-                          }`}
-                        >
-                          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                            <div className="space-y-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-mono text-xs font-bold bg-teal-900 text-white px-2 py-0.5 rounded">
-                                  {batch.clusterCode}
-                                </span>
-                                <Badge variant="teal">
-                                  {COURIER_LABELS[batch.courier]}
-                                </Badge>
-                                <span className="text-xs font-bold text-slate-800">
-                                  📅 {formatDateId(batch.pickupDate, true)} •{" "}
-                                  {
-                                    PICKUP_WINDOW_LABELS[batch.pickupWindow]
-                                      ?.label
-                                  }
-                                </span>
-                                <DraftStatusBadge
-                                  status={
-                                    batch.isReadyForPickup
-                                      ? "READY_FOR_PICKUP"
-                                      : "QUEUED"
-                                  }
-                                />
-                              </div>
-                              <p className="text-sm font-bold text-slate-900 pt-1">
-                                {batch.totalPackages} Paket Terkumpul (
-                                {formatWeight(batch.totalWeightGram)}) dari{" "}
-                                {batch.sellerProjections.length} Penjual
-                              </p>
-                            </div>
-
-                            {/* Form Jam Pickup & Tombol Buat Pickup Bersama */}
-                            <div className="flex flex-wrap items-center gap-2.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs font-semibold text-slate-700">
-                                  Jam Jemput:
-                                </span>
-                                <Input
-                                  type="time"
-                                  value={timeVal}
-                                  onChange={(e) =>
-                                    setPickupTimes({
-                                      ...pickupTimes,
-                                      [batch.groupKey]: e.target.value,
-                                    })
-                                  }
-                                  className="h-9 w-28 text-xs font-bold"
-                                />
-                              </div>
-
-                              {batch.isReadyForPickup ? (
-                                <Button
-                                  variant="cta"
-                                  size="sm"
-                                  disabled={createPickupMutation.isPending}
-                                  onClick={() =>
-                                    createPickupMutation.mutate({
-                                      clusterId: batch.clusterId,
-                                      pickupDate: batch.pickupDate,
-                                      pickupWindow: batch.pickupWindow,
-                                      courier: batch.courier,
-                                      pickupTime: timeVal,
-                                      forceBelowMinimum: false,
-                                    })
-                                  }
-                                >
-                                  Buat Pickup Bersama Sekarang
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    setForceConfirmKey(
-                                      forceConfirmKey === batch.groupKey
-                                        ? null
-                                        : batch.groupKey
-                                    )
-                                  }
-                                  className="border-amber-400 text-amber-900 hover:bg-amber-50"
-                                >
-                                  Paksa Buat Pickup Bersama
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Peringatan Paksa Pickup di Bawah Syarat Minimum (4.4) */}
-                          {forceConfirmKey === batch.groupKey &&
-                            !batch.isReadyForPickup && (
-                              <div className="rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs space-y-2">
-                                <div className="flex items-start gap-2 text-amber-950 font-bold">
-                                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                                  <span>
-                                    Peringatan: Kuota Minimum Belum Tercapai (
-                                    {batch.totalPackages}/{batch.minPackages}{" "}
-                                    paket atau{" "}
-                                    {formatWeight(batch.totalWeightGram)}/
-                                    {formatWeight(batch.minTotalWeightGram)})
-                                  </span>
-                                </div>
-                                <p className="text-amber-800">
-                                  Jika Anda memaksa membuat Pickup Bersama
-                                  sekarang, biaya pickup dasar{" "}
-                                  {formatRupiah(batch.basePickupFee)} (+fee{" "}
-                                  {batch.platformFeePercent}%) hanya akan dibagi
-                                  ke {batch.sellerProjections.length} penjual
-                                  sehingga{" "}
-                                  <strong>
-                                    biaya per penjual akan lebih tinggi
-                                  </strong>
-                                  .
-                                </p>
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setForceConfirmKey(null)}
-                                  >
-                                    Batal
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="cta"
-                                    disabled={createPickupMutation.isPending}
-                                    onClick={() =>
-                                      createPickupMutation.mutate({
-                                        clusterId: batch.clusterId,
-                                        pickupDate: batch.pickupDate,
-                                        pickupWindow: batch.pickupWindow,
-                                        courier: batch.courier,
-                                        pickupTime: timeVal,
-                                        forceBelowMinimum: true,
-                                      })
-                                    }
-                                  >
-                                    Ya, Paksa Jadwalkan Pickup Bersama
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-
-                          {/* Progress Bar */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                            <div>
-                              <div className="flex justify-between font-medium text-slate-600 mb-1">
-                                <span>
-                                  Paket: {batch.totalPackages} dari{" "}
-                                  {batch.minPackages} paket
-                                </span>
-                                <span>{batch.packageProgressPct}%</span>
-                              </div>
-                              <Progress value={batch.packageProgressPct} />
-                            </div>
-                            <div>
-                              <div className="flex justify-between font-medium text-slate-600 mb-1">
-                                <span>
-                                  Berat: {formatWeight(batch.totalWeightGram)}{" "}
-                                  dari {formatWeight(batch.minTotalWeightGram)}
-                                </span>
-                                <span>{batch.weightProgressPct}%</span>
-                              </div>
-                              <Progress value={batch.weightProgressPct} />
-                            </div>
-                          </div>
-
-                          {/* Ringkasan Pembagian Biaya Penjual di Grup Ini */}
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            {batch.sellerProjections.map((s) => (
-                              <div
-                                key={s.sellerId}
-                                className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs"
-                              >
-                                <span className="font-bold text-slate-800">
-                                  {s.sellerName}
-                                </span>{" "}
-                                ({s.packageCount} pkt •{" "}
-                                {formatWeight(s.weightGram)} /{" "}
-                                {s.weightPercentage}%) →{" "}
-                                <strong className="text-teal-800">
-                                  {formatRupiah(s.finalTotalCharge)}
-                                </strong>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-                  )
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Bagian 3: Daftar Permintaan Gabung Cluster (PENDING) */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Users className="h-5 w-5 text-teal-700" />
-                  Daftar Permintaan Gabung Cluster ({pendingRequests.length})
-                </CardTitle>
-                <CardDescription>
-                  Setujui atau tolak penjual UMKM di sekitar area fisik cluster
-                  Anda.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {pendingRequests.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-4 text-center">
-                    Tidak ada permintaan gabung cluster yang menunggu
-                    persetujuan.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {pendingRequests.map(
-                      (req: {
-                        id: string;
-                        userName: string;
-                        userEmail: string;
-                        userPhone: string;
-                        storeName: string;
-                        businessType: string;
-                        address: string;
-                        clusterName: string;
-                        clusterCode: string;
-                        joinedAt: string;
-                      }) => (
-                        <div
-                          key={req.id}
-                          className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                        >
-                          <div className="space-y-1 text-xs">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="orange">MENUNGGU ACC</Badge>
-                              <span className="font-bold text-slate-900 text-sm">
-                                {req.userName} — {req.storeName}
-                              </span>
-                            </div>
-                            <p className="text-slate-600">
-                              Jenis Usaha: {req.businessType} • WA:{" "}
-                              {req.userPhone} • Email: {req.userEmail}
-                            </p>
-                            <p className="text-slate-600">
-                              Alamat Toko: <strong>{req.address}</strong> → Ingin
-                              gabung ke{" "}
-                              <strong className="text-teal-800">
-                                {req.clusterName} ({req.clusterCode})
-                              </strong>
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Button
-                              size="sm"
-                              className="gap-1"
-                              disabled={moderateMemberMutation.isPending}
-                              onClick={() =>
-                                moderateMemberMutation.mutate({
-                                  memberId: req.id,
-                                  decision: "ACTIVE",
-                                })
-                              }
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                              <span>Setujui</span>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="gap-1"
-                              disabled={moderateMemberMutation.isPending}
-                              onClick={() =>
-                                moderateMemberMutation.mutate({
-                                  memberId: req.id,
-                                  decision: "REJECTED",
-                                })
-                              }
-                            >
-                              <XCircle className="h-3.5 w-3.5" />
-                              <span>Tolak</span>
-                            </Button>
-                          </div>
-                        </div>
-                      )
                     )}
+
+                    {/* Progress Kuota */}
+                    <div className="p-4 border-b border-[#E3E7EA] grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <div className="flex justify-between text-[#626E76] mb-1 text-[11px]">
+                          <span>Paket: {batch.totalPackages} dari {batch.minPackages}</span>
+                          <span className="tabular-nums">{batch.packageProgressPct}%</span>
+                        </div>
+                        <Progress value={batch.packageProgressPct} />
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-[#626E76] mb-1 text-[11px]">
+                          <span>Berat: {formatWeight(batch.totalWeightGram)} dari {formatWeight(batch.minTotalWeightGram)}</span>
+                          <span className="tabular-nums">{batch.weightProgressPct}%</span>
+                        </div>
+                        <Progress value={batch.weightProgressPct} />
+                      </div>
+                    </div>
+
+                    {/* Ringkasan Penjual */}
+                    <div className="p-3 bg-white flex flex-wrap gap-2 text-xs">
+                      {batch.sellerProjections.map((s) => (
+                        <div key={s.sellerId} className="rounded border border-[#E3E7EA] px-2.5 py-1 text-[11px]">
+                          <span className="font-semibold text-[#182126]">{s.sellerName}</span>{" "}
+                          <span className="text-[#626E76]">({s.packageCount} pkt • {formatWeight(s.weightGram)})</span> →{" "}
+                          <span className="font-semibold text-[#17685F] tabular-nums">{formatRupiah(s.finalTotalCharge)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 3. Permintaan Gabung Cluster */}
+        <div className="space-y-3">
+          <h2 className="text-xs font-semibold text-[#182126] uppercase tracking-wider">
+            Permintaan Gabung Cluster ({pendingRequests.length})
+          </h2>
+
+          {pendingRequests.length === 0 ? (
+            <div className="rounded border border-[#E3E7EA] bg-white p-6 text-center text-xs text-[#8D98A0]">
+              Tidak ada permintaan gabung cluster baru yang menunggu persetujuan.
+            </div>
+          ) : (
+            <div className="rounded border border-[#E3E7EA] bg-white divide-y divide-[#E3E7EA]">
+              {pendingRequests.map((req: {
+                id: string;
+                userName: string;
+                userEmail: string;
+                userPhone: string;
+                storeName: string;
+                businessType: string;
+                address: string;
+                clusterName: string;
+                clusterCode: string;
+              }) => (
+                <div key={req.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="space-y-0.5">
+                    <p className="font-semibold text-[#182126]">
+                      {req.userName} — {req.storeName}
+                    </p>
+                    <p className="text-[#626E76]">
+                      {req.businessType} • WA: {req.userPhone} • Email: {req.userEmail}
+                    </p>
+                    <p className="text-[#626E76]">
+                      Alamat: {req.address} → Cluster: <strong>{req.clusterName} ({req.clusterCode})</strong>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs font-semibold gap-1"
+                      disabled={moderateMemberMutation.isPending}
+                      onClick={() =>
+                        moderateMemberMutation.mutate({
+                          memberId: req.id,
+                          decision: "ACTIVE",
+                        })
+                      }
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      <span>Setujui</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-xs text-[#B42318] border-[#E3E7EA] hover:bg-[#FDF2F1] gap-1"
+                      disabled={moderateMemberMutation.isPending}
+                      onClick={() =>
+                        moderateMemberMutation.mutate({
+                          memberId: req.id,
+                          decision: "REJECTED",
+                        })
+                      }
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      <span>Tolak</span>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </AppShell>
   );
 }
-

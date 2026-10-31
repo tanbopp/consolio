@@ -11,43 +11,57 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "#E3E7EA",
+        input: "#E3E7EA",
+        ring: "#17685F",
+        background: "#F6F7F8",
+        surface: "#FFFFFF",
+        foreground: "#182126",
+        secondary: {
+          DEFAULT: "#626E76",
+          foreground: "#182126",
+        },
         primary: {
-          DEFAULT: "#0f766e", // Teal 700
-          foreground: "#ffffff",
-          dark: "#115e59", // Teal 800
-          light: "#f0fdfa", // Teal 50
+          DEFAULT: "#17685F",
+          foreground: "#FFFFFF",
+          hover: "#10534C",
+          subtle: "#EDF5F4",
         },
         accent: {
-          DEFAULT: "#ea580c", // Orange 600 (CTA)
-          foreground: "#ffffff",
-          hover: "#c2410c", // Orange 700
+          DEFAULT: "#17685F",
+          foreground: "#FFFFFF",
+          hover: "#10534C",
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+        success: {
+          DEFAULT: "#20734D",
+          subtle: "#EAF5EF",
+          foreground: "#144D33",
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+        warning: {
+          DEFAULT: "#9A6700",
+          subtle: "#FEF7E6",
+          foreground: "#734C00",
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+        danger: {
+          DEFAULT: "#B42318",
+          subtle: "#FDF2F1",
+          foreground: "#911D13",
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        DEFAULT: "6px",
+        sm: "4px",
+        md: "6px",
+        lg: "8px",
+      },
+      fontSize: {
+        xs: ["12px", "16px"],
+        sm: ["13px", "18px"],
+        base: ["14px", "20px"],
+        lg: ["16px", "24px"],
+        xl: ["18px", "26px"],
+        "2xl": ["22px", "28px"],
+        "3xl": ["26px", "32px"],
       },
     },
   },

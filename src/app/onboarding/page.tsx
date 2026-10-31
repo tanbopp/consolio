@@ -5,45 +5,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  MapPin,
   Search,
-  CheckCircle2,
-  Clock,
-  PlusCircle,
-  Store,
-  Users,
-  Save,
-  ArrowRight,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   profileUpdateSchema,
   ProfileUpdateInput,
   clusterSchema,
   ClusterInput,
 } from "@/lib/validations";
-import { BUSINESS_TYPES, PICKUP_WINDOW_LABELS } from "@/lib/constants";
+import { BUSINESS_TYPES } from "@/lib/constants";
 import { formatRupiah, formatWeight } from "@/lib/utils";
-
-const ALL_DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
-const ALL_WINDOWS: Array<"MORNING" | "AFTERNOON" | "EVENING" | "NIGHT"> = [
-  "MORNING",
-  "AFTERNOON",
-  "EVENING",
-  "NIGHT",
-];
 
 export default function OnboardingPage() {
   const queryClient = useQueryClient();
@@ -64,7 +41,7 @@ export default function OnboardingPage() {
     },
   });
 
-  const { data: clustersData, isLoading: loadingClusters } = useQuery({
+  const { data: clustersData } = useQuery({
     queryKey: ["clusters", searchQuery],
     queryFn: async () => {
       const res = await fetch(
@@ -75,7 +52,6 @@ export default function OnboardingPage() {
     },
   });
 
-  // Form Profil Usaha
   const {
     register: regProfile,
     handleSubmit: handleProfileSubmit,
@@ -117,7 +93,6 @@ export default function OnboardingPage() {
     },
   });
 
-  // Mutation Join Cluster
   const joinClusterMutation = useMutation({
     mutationFn: async (payload: { clusterId?: string; clusterCode?: string }) => {
       const res = await fetch("/api/clusters", {
@@ -140,24 +115,9 @@ export default function OnboardingPage() {
     },
   });
 
-  // Form Buat Cluster Baru
-  const [selectedDays, setSelectedDays] = useState<string[]>([
-    "Senin",
-    "Selasa",
-    "Rabu",
-    "Kamis",
-    "Jumat",
-    "Sabtu",
-  ]);
-  const [selectedWindows, setSelectedWindows] = useState<
-    Array<"MORNING" | "AFTERNOON" | "EVENING" | "NIGHT">
-  >(["MORNING", "AFTERNOON", "EVENING"]);
-
   const {
     register: regCluster,
     handleSubmit: handleClusterSubmit,
-    setValue: setClusterValue,
-    formState: { errors: clusterErrors },
   } = useForm<ClusterInput>({
     resolver: zodResolver(clusterSchema),
     defaultValues: {
@@ -174,22 +134,6 @@ export default function OnboardingPage() {
       platformFeePercent: 10,
     },
   });
-
-  const toggleDay = (day: string) => {
-    const next = selectedDays.includes(day)
-      ? selectedDays.filter((d) => d !== day)
-      : [...selectedDays, day];
-    setSelectedDays(next);
-    setClusterValue("pickupDays", next);
-  };
-
-  const toggleWindow = (w: "MORNING" | "AFTERNOON" | "EVENING" | "NIGHT") => {
-    const next = selectedWindows.includes(w)
-      ? selectedWindows.filter((item) => item !== w)
-      : [...selectedWindows, w];
-    setSelectedWindows(next);
-    setClusterValue("pickupTimeWindows", next);
-  };
 
   const createClusterMutation = useMutation({
     mutationFn: async (values: ClusterInput) => {
@@ -220,610 +164,323 @@ export default function OnboardingPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900">
-              Onboarding Penjual: Profil & Pilih Cluster Area
+            <h1 className="text-2xl font-bold tracking-tight text-[#182126]">
+              Profil Penjual & Keanggotaan Cluster
             </h1>
-            <p className="text-sm text-slate-600 mt-1">
-              Lengkapi profil usaha Anda dan bergabunglah ke satu cluster area
-              fisik untuk mulai menggabungkan jadwal pickup.
+            <p className="text-xs text-[#626E76] mt-0.5">
+              Data usaha dan status keanggotaan area fisik Anda di Consolio.
             </p>
           </div>
-          {activeMembership && (
-            <Link href="/drafts/new">
-              <Button variant="cta" className="gap-2">
-                <span>Buat Draft Pengiriman</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          )}
         </div>
 
         {feedback && (
           <div
-            className={`rounded-xl border p-4 text-sm font-medium flex items-center justify-between ${
+            className={`rounded border px-3 py-2 text-xs font-medium flex items-center justify-between ${
               feedback.type === "success"
-                ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                : "border-red-200 bg-red-50 text-red-800"
+                ? "border-[#C3E6D3] bg-[#EAF5EF] text-[#144D33]"
+                : "border-[#F8D2CF] bg-[#FDF2F1] text-[#911D13]"
             }`}
           >
             <span>{feedback.text}</span>
             <button
               type="button"
               onClick={() => setFeedback(null)}
-              className="text-xs font-bold underline ml-4"
+              className="text-[11px] underline ml-3"
             >
               Tutup
             </button>
           </div>
         )}
 
-        {/* Status Cluster Saat Ini */}
-        <Card className="border-l-4 border-l-teal-700">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <MapPin className="h-5 w-5 text-teal-700" />
-              Status Keanggotaan Cluster Anda
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingProfile ? (
-              <p className="text-sm text-slate-500">Memuat status cluster...</p>
-            ) : activeMembership?.cluster ? (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl bg-teal-50/80 border border-teal-200 p-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-emerald-600 text-white border-none">
-                      ANGGOTA AKTIF
-                    </Badge>
-                    <span className="font-mono text-xs font-bold text-teal-800">
-                      Kode: {activeMembership.cluster.code}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-extrabold text-teal-950">
+        {/* Status Keanggotaan Cluster Saat Ini */}
+        <div className="rounded border border-[#E3E7EA] bg-white p-4">
+          <span className="text-[11px] font-semibold text-[#8D98A0] uppercase tracking-wider block mb-2">
+            Status Keanggotaan Cluster Anda
+          </span>
+
+          {loadingProfile ? (
+            <p className="text-xs text-[#626E76]">Memuat status keanggotaan...</p>
+          ) : activeMembership?.cluster ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm text-[#182126]">
                     {activeMembership.cluster.name}
-                  </h3>
-                  <p className="text-xs text-teal-800">
-                    Titik Kumpul: {activeMembership.cluster.centerAddress} •
-                    Radius {activeMembership.cluster.radiusKm} km
-                  </p>
-                  <p className="text-xs text-teal-700 font-medium">
-                    Syarat Minimum Pickup: {activeMembership.cluster.minPackages}{" "}
-                    paket atau{" "}
-                    {formatWeight(activeMembership.cluster.minTotalWeightGram)}{" "}
-                    • Biaya Pickup Dasar:{" "}
-                    {formatRupiah(activeMembership.cluster.basePickupFee)} (+Fee{" "}
-                    {activeMembership.cluster.platformFeePercent}%)
-                  </p>
+                  </span>
+                  <span className="rounded bg-[#EAF5EF] px-2 py-0.5 text-xs font-medium text-[#144D33] border border-[#C3E6D3]">
+                    Anggota Aktif ({activeMembership.cluster.code})
+                  </span>
                 </div>
-                <div className="shrink-0">
-                  <Link href="/drafts/new">
-                    <Button className="gap-1.5">
-                      <PlusCircle className="h-4 w-4" />
-                      <span>Tambah Draft Paket</span>
-                    </Button>
-                  </Link>
-                </div>
+                <p className="text-xs text-[#626E76]">
+                  Titik kumpul: {activeMembership.cluster.centerAddress} • Radius {activeMembership.cluster.radiusKm} km
+                </p>
+                <p className="text-xs text-[#626E76]">
+                  Syarat pickup: {activeMembership.cluster.minPackages} paket / {formatWeight(activeMembership.cluster.minTotalWeightGram)} • Biaya dasar: {formatRupiah(activeMembership.cluster.basePickupFee)}
+                </p>
               </div>
-            ) : pendingMembership?.cluster ? (
-              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-amber-700" />
-                    <span className="text-xs font-bold uppercase text-amber-800">
-                      Menunggu Persetujuan Admin Cluster
-                    </span>
-                  </div>
-                  <p className="text-sm font-bold text-slate-900">
-                    {pendingMembership.cluster.name} (
-                    {pendingMembership.cluster.code})
-                  </p>
-                  <p className="text-xs text-slate-600">
-                    Permintaan bergabung Anda sedang ditinjau oleh Admin
-                    Cluster. Setelah disetujui, Anda dapat langsung membuat
-                    draft pengiriman.
-                  </p>
-                </div>
-                <Badge variant="orange">Status: PENDING</Badge>
-              </div>
-            ) : (
-              <div className="rounded-xl bg-slate-100 border border-slate-200 p-4 text-xs text-slate-700">
-                Anda belum tergabung di cluster mana pun. Silakan cari kode
-                cluster di bawah (misalnya{" "}
-                <strong className="text-teal-800">GRIYA01</strong> atau{" "}
-                <strong className="text-teal-800">KAMPUS02</strong>) dan klik{" "}
-                <strong>Request Gabung Cluster</strong>.
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Kolom Kiri: Edit Profil Usaha */}
-          <div className="lg:col-span-5">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Store className="h-5 w-5 text-teal-700" />
-                  Profil Usaha & Toko UMKM
-                </CardTitle>
-                <CardDescription>
-                  Data ini tampil kepada Admin Cluster dan kurir saat penjemputan
-                  paket.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form
-                  onSubmit={handleProfileSubmit((vals) =>
-                    updateProfileMutation.mutate(vals)
-                  )}
-                  className="space-y-4"
+              <Link href="/drafts/new">
+                <Button size="sm" className="h-8 text-xs font-semibold gap-1.5 shrink-0">
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Tambah Draft Paket</span>
+                </Button>
+              </Link>
+            </div>
+          ) : pendingMembership?.cluster ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FEF7E6] p-3 rounded border border-[#F9E2B6]">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-xs text-[#734C00]">
+                    Permintaan Bergabung Menunggu Persetujuan
+                  </span>
+                  <span className="text-xs text-[#734C00]">
+                    ({pendingMembership.cluster.name} - {pendingMembership.cluster.code})
+                  </span>
+                </div>
+                <p className="text-xs text-[#9A6700]">
+                  Admin cluster sedang meninjau permintaan Anda. Setelah disetujui, Anda dapat langsung membuat paket.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-xs text-[#626E76]">
+              Anda belum terdaftar di cluster area mana pun. Pilih salah satu cluster di bawah atau masukkan kode unik cluster Anda.
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {/* Kolom Kiri: Profil Toko */}
+          <div className="rounded border border-[#E3E7EA] bg-white overflow-hidden">
+            <div className="p-4 border-b border-[#E3E7EA] bg-[#FAFAFA]">
+              <h2 className="text-sm font-semibold text-[#182126]">
+                Profil Usaha & Kontak
+              </h2>
+              <p className="text-xs text-[#626E76]">
+                Informasi pengirim yang digunakan untuk penjemputan paket
+              </p>
+            </div>
+
+            <form
+              onSubmit={handleProfileSubmit((vals) =>
+                updateProfileMutation.mutate(vals)
+              )}
+              className="p-4 space-y-3 text-xs"
+            >
+              <div className="space-y-1">
+                <Label className="text-xs">Nama Pemilik</Label>
+                <Input {...regProfile("name")} />
+                {profileErrors.name && (
+                  <p className="text-[11px] text-[#B42318]">{profileErrors.name.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Nomor WhatsApp</Label>
+                <Input {...regProfile("phone")} />
+                {profileErrors.phone && (
+                  <p className="text-[11px] text-[#B42318]">{profileErrors.phone.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Nama Toko / Usaha</Label>
+                <Input {...regProfile("storeName")} />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Jenis Usaha</Label>
+                <select
+                  className="flex h-9 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
+                  {...regProfile("businessType")}
                 >
-                  <div className="space-y-1.5">
-                    <Label htmlFor="prof-name">Nama Pemilik</Label>
-                    <Input id="prof-name" {...regProfile("name")} />
-                    {profileErrors.name && (
-                      <p className="text-xs text-red-600">
-                        {profileErrors.name.message}
-                      </p>
-                    )}
-                  </div>
+                  {BUSINESS_TYPES.map((bt) => (
+                    <option key={bt} value={bt}>
+                      {bt}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="prof-phone">Nomor WhatsApp Indonesia</Label>
-                    <Input id="prof-phone" {...regProfile("phone")} />
-                    {profileErrors.phone && (
-                      <p className="text-xs text-red-600">
-                        {profileErrors.phone.message}
-                      </p>
-                    )}
-                  </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Alamat Toko</Label>
+                <Input {...regProfile("address")} />
+              </div>
 
-                  <div className="space-y-1.5">
-                    <Label htmlFor="prof-store">Nama Toko</Label>
-                    <Input id="prof-store" {...regProfile("storeName")} />
-                    {profileErrors.storeName && (
-                      <p className="text-xs text-red-600">
-                        {profileErrors.storeName.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="prof-btype">Jenis Usaha</Label>
-                    <select
-                      id="prof-btype"
-                      className="flex h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-700"
-                      {...regProfile("businessType")}
-                    >
-                      {BUSINESS_TYPES.map((bt) => (
-                        <option key={bt} value={bt}>
-                          {bt}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label htmlFor="prof-address">Alamat Lengkap Toko</Label>
-                    <Input id="prof-address" {...regProfile("address")} />
-                    {profileErrors.address && (
-                      <p className="text-xs text-red-600">
-                        {profileErrors.address.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full gap-2"
-                    disabled={updateProfileMutation.isPending}
-                  >
-                    <Save className="h-4 w-4" />
-                    <span>
-                      {updateProfileMutation.isPending
-                        ? "Menyimpan..."
-                        : "Simpan Profil Usaha"}
-                    </span>
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+              <div className="pt-2 border-t border-[#E3E7EA] flex justify-end">
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-8 text-xs font-semibold"
+                  disabled={updateProfileMutation.isPending}
+                >
+                  Simpan Profil Usaha
+                </Button>
+              </div>
+            </form>
           </div>
 
-          {/* Kolom Kanan: Cari / Gabung Cluster atau Buat Cluster Baru */}
-          <div className="lg:col-span-7 space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-teal-700" />
-                      Cari & Gabung Cluster Area
-                    </CardTitle>
-                    <CardDescription>
-                      Satu penjual hanya boleh aktif di satu cluster pada satu
-                      waktu.
-                    </CardDescription>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setShowCreateCluster(!showCreateCluster)}
-                    className="gap-1.5"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    <span>
-                      {showCreateCluster
-                        ? "Tutup Form Cluster"
-                        : "Buat Cluster Baru"}
-                    </span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Quick Join dengan Kode Unik */}
-                <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                  <div className="flex-1">
-                    <Input
-                      value={quickJoinCode}
-                      onChange={(e) =>
-                        setQuickJoinCode(e.target.value.toUpperCase())
-                      }
-                      placeholder="Masukkan Kode Cluster (contoh: GRIYA01 atau KAMPUS02)"
-                      className="font-mono uppercase"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="cta"
-                    disabled={
-                      !quickJoinCode.trim() || joinClusterMutation.isPending
-                    }
-                    onClick={() =>
-                      joinClusterMutation.mutate({
-                        clusterCode: quickJoinCode.trim(),
-                      })
-                    }
-                  >
-                    Gabung Pakai Kode
-                  </Button>
-                </div>
+          {/* Kolom Kanan: Cari & Gabung Cluster */}
+          <div className="rounded border border-[#E3E7EA] bg-white overflow-hidden space-y-4 p-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E3E7EA]">
+              <div>
+                <h2 className="text-sm font-semibold text-[#182126]">
+                  Pilih atau Buat Cluster
+                </h2>
+                <p className="text-xs text-[#626E76]">
+                  Satu penjual aktif di satu cluster pada satu waktu
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCreateCluster(!showCreateCluster)}
+                className="text-xs text-[#17685F] hover:underline font-medium"
+              >
+                {showCreateCluster ? "Tutup form" : "+ Buat cluster baru"}
+              </button>
+            </div>
 
-                {/* Pencarian Nama / Kode */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari nama komplek, pasar, kos, atau kode cluster..."
-                    className="pl-9"
-                  />
-                </div>
+            {/* Gabung dengan Kode Cepat */}
+            <div className="flex items-center gap-2">
+              <Input
+                value={quickJoinCode}
+                onChange={(e) => setQuickJoinCode(e.target.value.toUpperCase())}
+                placeholder="Kode cluster (misal: GRIYA01)"
+                className="font-mono text-xs uppercase h-8"
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 text-xs font-semibold shrink-0"
+                disabled={!quickJoinCode.trim() || joinClusterMutation.isPending}
+                onClick={() =>
+                  joinClusterMutation.mutate({
+                    clusterCode: quickJoinCode.trim(),
+                  })
+                }
+              >
+                Gabung Kode
+              </Button>
+            </div>
 
-                {loadingClusters ? (
-                  <p className="text-xs text-slate-500 py-4 text-center">
-                    Mencari daftar cluster...
-                  </p>
-                ) : clusters.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center">
-                    <p className="text-sm font-bold text-slate-700">
-                      Cluster tidak ditemukan
-                    </p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Coba kata kunci lain atau buat cluster baru untuk area
-                      Anda.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {clusters.map(
-                      (c: {
-                        id: string;
-                        name: string;
-                        code: string;
-                        description: string;
-                        centerAddress: string;
-                        radiusKm: number;
-                        pickupDays: string[];
-                        pickupTimeWindows: string[];
-                        minPackages: number;
-                        minTotalWeightGram: number;
-                        basePickupFee: number;
-                        platformFeePercent: number;
-                        adminName: string;
-                        activeMemberCount: number;
-                        myMembershipStatus: string | null;
-                      }) => (
-                        <div
-                          key={c.id}
-                          className="rounded-xl border border-slate-200 p-4 hover:border-teal-300 transition-colors space-y-3"
-                        >
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="rounded bg-teal-900 px-2 py-0.5 font-mono text-xs font-bold text-white">
-                                  {c.code}
-                                </span>
-                                <h4 className="font-bold text-slate-900">
-                                  {c.name}
-                                </h4>
-                              </div>
-                              <p className="mt-1 text-xs text-slate-600">
-                                {c.description}
-                              </p>
-                            </div>
+            {/* Pencarian Cluster */}
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8D98A0]" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari komplek, pasar, atau jalan..."
+                className="pl-8 text-xs h-8"
+              />
+            </div>
 
-                            <div className="shrink-0">
-                              {c.myMembershipStatus === "ACTIVE" ? (
-                                <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 gap-1">
-                                  <CheckCircle2 className="h-3.5 w-3.5" />
-                                  Cluster Aktif Anda
-                                </Badge>
-                              ) : c.myMembershipStatus === "PENDING" ? (
-                                <Badge variant="orange">
-                                  Menunggu Persetujuan
-                                </Badge>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  disabled={
-                                    !!activeMembership ||
-                                    joinClusterMutation.isPending
-                                  }
-                                  onClick={() =>
-                                    joinClusterMutation.mutate({
-                                      clusterId: c.id,
-                                    })
-                                  }
-                                >
-                                  Request Gabung
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg bg-slate-50 p-2.5 text-[11px] text-slate-700 border border-slate-100">
-                            <div>
-                              <span className="text-slate-400 block">
-                                Radius & Anggota
-                              </span>
-                              <strong>
-                                {c.radiusKm} km • {c.activeMemberCount} UMKM
-                              </strong>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block">
-                                Syarat Minimum
-                              </span>
-                              <strong>
-                                {c.minPackages} pkt /{" "}
-                                {formatWeight(c.minTotalWeightGram)}
-                              </strong>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block">
-                                Biaya Pickup Dasar
-                              </span>
-                              <strong>
-                                {formatRupiah(c.basePickupFee)} (+
-                                {c.platformFeePercent}%)
-                              </strong>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block">
-                                Admin Cluster
-                              </span>
-                              <strong>{c.adminName}</strong>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
-                            <span> 📍 {c.centerAddress}</span>
-                            <span>•</span>
-                            <span>
-                              Hari: {c.pickupDays.join(", ")} (
-                              {c.pickupTimeWindows
-                                .map(
-                                  (w) =>
-                                    PICKUP_WINDOW_LABELS[w]?.label || w
-                                )
-                                .join("/")}
-                              )
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Form Buat Cluster Baru */}
+            {/* Form Buat Cluster Baru jika dibuka */}
             {showCreateCluster && (
-              <Card className="border-2 border-teal-700">
-                <CardHeader>
-                  <CardTitle>Buat Cluster Area Baru</CardTitle>
-                  <CardDescription>
-                    Jadikan rumah/toko Anda sebagai titik konsolidasi pickup
-                    untuk tetangga penjual UMKM di area Anda.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form
-                    onSubmit={handleClusterSubmit((vals) =>
-                      createClusterMutation.mutate(vals)
-                    )}
-                    className="space-y-4"
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label>Nama Cluster / Area</Label>
-                        <Input
-                          placeholder="Contoh: Pasar Modern BSD"
-                          {...regCluster("name")}
-                        />
-                        {clusterErrors.name && (
-                          <p className="text-xs text-red-600">
-                            {clusterErrors.name.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Kode Cluster Unik (Huruf Kapital & Angka)</Label>
-                        <Input
-                          placeholder="Contoh: PASARBSD01"
-                          className="font-mono uppercase"
-                          {...regCluster("code")}
-                        />
-                        {clusterErrors.code && (
-                          <p className="text-xs text-red-600">
-                            {clusterErrors.code.message}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+              <div className="rounded border border-[#17685F] p-4 bg-[#F8FAFA] space-y-3 text-xs">
+                <p className="font-semibold text-xs text-[#182126]">
+                  Buat Cluster Area Baru
+                </p>
 
-                    <div className="space-y-1.5">
-                      <Label>Deskripsi Cluster</Label>
-                      <Input
-                        placeholder="Penjelasan singkat area cakupan dan prosedur kumpul paket"
-                        {...regCluster("description")}
-                      />
-                      {clusterErrors.description && (
-                        <p className="text-xs text-red-600">
-                          {clusterErrors.description.message}
-                        </p>
-                      )}
+                <form
+                  onSubmit={handleClusterSubmit((vals) =>
+                    createClusterMutation.mutate(vals)
+                  )}
+                  className="space-y-3"
+                >
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Nama Cluster</Label>
+                      <Input placeholder="Komplek..." {...regCluster("name")} />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="sm:col-span-2 space-y-1.5">
-                        <Label>Alamat Pusat / Titik Kumpul</Label>
-                        <Input
-                          placeholder="Jl. Raya Utama Blok A No. 1..."
-                          {...regCluster("centerAddress")}
-                        />
-                        {clusterErrors.centerAddress && (
-                          <p className="text-xs text-red-600">
-                            {clusterErrors.centerAddress.message}
-                          </p>
-                        )}
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>Radius Area (Km)</Label>
-                        <Input
-                          type="number"
-                          step="0.5"
-                          {...regCluster("radiusKm", { valueAsNumber: true })}
-                        />
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Kode Cluster (Huruf Kapital)</Label>
+                      <Input placeholder="KOMPLEK01" className="uppercase font-mono" {...regCluster("code")} />
                     </div>
+                  </div>
 
-                    <div className="space-y-1.5">
-                      <Label>Hari Operasional Pickup</Label>
-                      <div className="flex flex-wrap gap-1.5 pt-1">
-                        {ALL_DAYS.map((day) => {
-                          const active = selectedDays.includes(day);
-                          return (
-                            <button
-                              key={day}
-                              type="button"
-                              onClick={() => toggleDay(day)}
-                              className={`rounded-lg px-2.5 py-1 text-xs font-semibold border transition-colors ${
-                                active
-                                  ? "bg-teal-700 text-white border-teal-700"
-                                  : "bg-white text-slate-600 border-slate-300"
-                              }`}
-                            >
-                              {day}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  <div className="space-y-1">
+                    <Label className="text-[11px]">Deskripsi</Label>
+                    <Input placeholder="Cakupan area RW 05..." {...regCluster("description")} />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[11px]">Titik Kumpul / Alamat Pusat</Label>
+                    <Input placeholder="Pos Satpam Blok A..." {...regCluster("centerAddress")} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Min. Paket</Label>
+                      <Input type="number" {...regCluster("minPackages", { valueAsNumber: true })} />
                     </div>
-
-                    <div className="space-y-1.5">
-                      <Label>Jendela Waktu Pickup</Label>
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {ALL_WINDOWS.map((w) => {
-                          const active = selectedWindows.includes(w);
-                          return (
-                            <button
-                              key={w}
-                              type="button"
-                              onClick={() => toggleWindow(w)}
-                              className={`rounded-lg px-3 py-1.5 text-xs font-semibold border transition-colors ${
-                                active
-                                  ? "bg-teal-700 text-white border-teal-700"
-                                  : "bg-white text-slate-600 border-slate-300"
-                              }`}
-                            >
-                              {PICKUP_WINDOW_LABELS[w].label} (
-                              {PICKUP_WINDOW_LABELS[w].timeRange})
-                            </button>
-                          );
-                        })}
-                      </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px]">Min. Berat (Gram)</Label>
+                      <Input type="number" step="500" {...regCluster("minTotalWeightGram", { valueAsNumber: true })} />
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                      <div className="space-y-1">
-                        <Label className="text-xs">Min. Paket</Label>
-                        <Input
-                          type="number"
-                          {...regCluster("minPackages", { valueAsNumber: true })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Min. Berat (Gram)</Label>
-                        <Input
-                          type="number"
-                          step="500"
-                          {...regCluster("minTotalWeightGram", {
-                            valueAsNumber: true,
-                          })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Biaya Pickup (Rp)</Label>
-                        <Input
-                          type="number"
-                          step="1000"
-                          {...regCluster("basePickupFee", {
-                            valueAsNumber: true,
-                          })}
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-xs">Fee Platform (%)</Label>
-                        <Input
-                          type="number"
-                          step="1"
-                          {...regCluster("platformFeePercent", {
-                            valueAsNumber: true,
-                          })}
-                        />
-                      </div>
-                    </div>
-
+                  <div className="flex justify-end gap-2 pt-1">
                     <Button
                       type="submit"
-                      variant="cta"
-                      className="w-full"
+                      size="sm"
+                      className="h-7 text-xs font-semibold"
                       disabled={createClusterMutation.isPending}
                     >
-                      {createClusterMutation.isPending
-                        ? "Membuat Cluster..."
-                        : "Simpan & Aktifkan Cluster Baru"}
+                      Simpan Cluster
                     </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                  </div>
+                </form>
+              </div>
             )}
+
+            {/* List Cluster */}
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {clusters.map((c: {
+                id: string;
+                name: string;
+                code: string;
+                description: string;
+                centerAddress: string;
+                radiusKm: number;
+                minPackages: number;
+                minTotalWeightGram: number;
+                basePickupFee: number;
+                activeMemberCount: number;
+                myMembershipStatus: string | null;
+              }) => (
+                <div key={c.id} className="rounded border border-[#E3E7EA] p-3 text-xs space-y-1.5 hover:bg-[#FAFAFA]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-semibold text-xs text-[#182126]">{c.name}</span>{" "}
+                      <span className="text-[#626E76]">({c.code})</span>
+                    </div>
+                    {c.myMembershipStatus === "ACTIVE" ? (
+                      <span className="text-[11px] font-medium text-[#20734D]">
+                        Cluster aktif
+                      </span>
+                    ) : c.myMembershipStatus === "PENDING" ? (
+                      <span className="text-[11px] font-medium text-[#9A6700]">
+                        Menunggu ACC
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={!!activeMembership || joinClusterMutation.isPending}
+                        onClick={() => joinClusterMutation.mutate({ clusterId: c.id })}
+                        className="rounded border border-[#E3E7EA] bg-white px-2 py-0.5 text-[11px] font-medium text-[#182126] hover:bg-[#F6F7F8]"
+                      >
+                        Request Gabung
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[#626E76]">
+                    Titik kumpul: {c.centerAddress} • {c.activeMemberCount} penjual
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
