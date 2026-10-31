@@ -1,0 +1,267 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SELLER
+  CLUSTER_ADMIN
+  PLATFORM_ADMIN
+}
+
+enum ClusterMemberStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum CourierType {
+  JNE
+  JNT
+  SICEPAT
+  ANTERAJA
+  OTHER
+}
+
+enum PickupWindow {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+}
+
+enum ShipmentDraftStatus {
+  DRAFT
+  QUEUED
+  READY_FOR_PICKUP
+  PICKED_UP
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum GroupPickupStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  WAIVED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  phone        String?
+  role         UserRole @default(SELLER)
+  storeName    String?
+  businessType String?
+  address      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  managedClusters Cluster[]        @relation("ClusterAdmin")
+  memberships     ClusterMember[]
+  shipmentDrafts  ShipmentDraft[]
+  pickupItems     PickupItem[]
+  paymentRecords  PaymentRecord[]
+  notifications   Notification[]
+  activityLogs    ActivityLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Cluster {
+  id                  String   @id @default(cuid())
+  name                String
+  code                String   @unique
+  description         String
+  centerAddress       String
+  radiusKm            Float    @default(3.0)
+  pickupDays          String[]
+  pickupTimeWindows   String[]
+  minPackages         Int      @default(10)
+  minTotalWeightGram  Int      @default(10000)
+  basePickupFee       Int      @default(25000)
+  platformFeePercent  Float    @default(10.0)
+  adminId             String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  admin          User            @relation("ClusterAdmin", fields: [adminId], references: [id])
+  members        ClusterMember[]
+  shipmentDrafts ShipmentDraft[]
+  groupPickups   GroupPickup[]
+
+  @@index([code])
+  @@index([adminId])
+}
+
+model ClusterMember {
+  id        String              @id @default(cuid())
+  clusterId String
+  userId    String
+  status    ClusterMemberStatus @default(PENDING)
+  joinedAt  DateTime            @default(now())
+
+  cluster Cluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clusterId, userId])
+  @@index([userId, status])
+  @@index([clusterId, status])
+}
+
+model ShipmentDraft {
+  id                 String              @id @default(cuid())
+  userId             String
+  clusterId          String
+  recipientName      String
+  recipientPhone     String
+  destinationAddress String
+  city               String
+  province           String
+  postalCode         String
+  weightGram         Int
+  lengthCm           Float
+  widthCm            Float
+  heightCm           Float
+  itemValue          Int
+  notes              String?
+  courier            CourierType
+  pickupDate         DateTime
+  pickupWindow       PickupWindow
+  status             ShipmentDraftStatus @default(QUEUED)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cluster    Cluster     @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  pickupItem PickupItem?
+
+  @@index([clusterId, pickupDate, pickupWindow, courier, status])
+  @@index([userId, status])
+}
+
+model GroupPickup {
+  id                 String            @id @default(cuid())
+  code               String            @unique
+  clusterId          String
+  courier            CourierType
+  pickupDate         DateTime
+  pickupWindow       PickupWindow
+  pickupTime         String?           @default("16:00")
+  totalPackages      Int
+  totalWeightGram    Int
+  basePickupFee      Int
+  platformFeePercent Float
+  totalCost          Int
+  roundingDiff       Int               @default(0)
+  forcedBelowMin     Boolean           @default(false)
+  costLocked         Boolean           @default(false)
+  status             GroupPickupStatus @default(SCHEDULED)
+  createdAt          DateTime          @default(now())
+  completedAt        DateTime?
+
+  cluster        Cluster         @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  items          PickupItem[]
+  paymentRecords PaymentRecord[]
+
+  @@index([clusterId, status])
+  @@index([code])
+}
+
+model PickupItem {
+  id              String @id @default(cuid())
+  groupPickupId   String
+  shipmentDraftId String @unique
+  sellerId        String
+  weightGram      Int
+  costShare       Int
+  platformFee     Int
+  totalCharge     Int
+
+  groupPickup   GroupPickup   @relation(fields: [groupPickupId], references: [id], onDelete: Cascade)
+  shipmentDraft ShipmentDraft @relation(fields: [shipmentDraftId], references: [id], onDelete: Cascade)
+  seller        User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([groupPickupId])
+  @@index([sellerId])
+}
+
+model PaymentRecord {
+  id              String        @id @default(cuid())
+  groupPickupId   String
+  sellerId        String
+  totalWeightGram Int           @default(0)
+  weightPercent   Float         @default(0)
+  costShare       Int           @default(0)
+  platformFee     Int           @default(0)
+  roundingAdjust  Int           @default(0)
+  amount          Int
+  status          PaymentStatus @default(UNPAID)
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  groupPickup GroupPickup @relation(fields: [groupPickupId], references: [id], onDelete: Cascade)
+  seller      User        @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@unique([groupPickupId, sellerId])
+  @@index([sellerId, status])
+}
+
+model PlatformConfig {
+  id                    String   @id @default("default")
+  defaultBasePickupFee  Int      @default(25000)
+  defaultPlatformFeePct Float    @default(10.0)
+  defaultMinPackages    Int      @default(10)
+  defaultMinWeightGram  Int      @default(10000)
+  soloPickupEstimateRp  Int      @default(15000)
+  updatedAt             DateTime @updatedAt
+}
+
+model Notification {
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
+  message        String
+  type           String   @default("INFO")
+  link           String?
+  isRead         Boolean  @default(false)
+  whatsappStatus String   @default("PENDING_INTEGRATION")
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  actorName  String
+  actorRole  String
+  action     String
+  entityType String
+  entityId   String
+  summary    String
+  details    String?
+  createdAt  DateTime @default(now())
+
+  actor User @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
