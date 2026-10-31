@@ -13,6 +13,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   profileUpdateSchema,
   ProfileUpdateInput,
@@ -56,6 +57,8 @@ export default function OnboardingPage() {
     register: regProfile,
     handleSubmit: handleProfileSubmit,
     reset: resetProfile,
+    watch: watchProfile,
+    setValue: setProfileValue,
     formState: { errors: profileErrors },
   } = useForm<ProfileUpdateInput>({
     resolver: zodResolver(profileUpdateSchema),
@@ -292,16 +295,16 @@ export default function OnboardingPage() {
 
               <div className="space-y-1">
                 <Label className="text-xs">Jenis Usaha</Label>
-                <select
-                  className="flex h-9 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-                  {...regProfile("businessType")}
-                >
-                  {BUSINESS_TYPES.map((bt) => (
-                    <option key={bt} value={bt}>
-                      {bt}
-                    </option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={watchProfile("businessType")}
+                  onChange={(val) => setProfileValue("businessType", val)}
+                  placeholder="Pilih Jenis Usaha..."
+                  options={BUSINESS_TYPES.map((bt) => ({
+                    value: bt,
+                    label: bt,
+                  }))}
+                  triggerClassName="h-9 text-xs rounded-lg"
+                />
               </div>
 
               <div className="space-y-1">

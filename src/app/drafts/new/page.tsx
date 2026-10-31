@@ -4,16 +4,20 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowLeft,
-  Info,
-} from "lucide-react";
+  ArrowLeft01Icon,
+  InformationCircleIcon,
+  Package01Icon,
+  CheckmarkCircle02Icon,
+} from "@hugeicons/core-free-icons";
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { shipmentDraftSchema, ShipmentDraftInput } from "@/lib/validations";
 import {
   COURIER_LABELS,
@@ -49,7 +53,7 @@ export default function NewDraftPage() {
     register,
     handleSubmit,
     watch,
-    setValue,
+    control,
     formState: { errors },
   } = useForm<ShipmentDraftInput>({
     resolver: zodResolver(shipmentDraftSchema),
@@ -80,7 +84,6 @@ export default function NewDraftPage() {
   const onSubmit = async (values: ShipmentDraftInput) => {
     setServerError("");
     setSubmitting(true);
-
     try {
       const res = await fetch("/api/drafts", {
         method: "POST",
@@ -88,277 +91,436 @@ export default function NewDraftPage() {
         body: JSON.stringify(values),
       });
 
-      const json = await res.json();
+      const data = await res.json();
       if (!res.ok) {
-        setServerError(json.error || "Gagal menyimpan draft pengiriman");
-        setSubmitting(false);
-        return;
+        throw new Error(data.error || "Gagal membuat draft paket");
       }
 
-      queryClient.invalidateQueries({ queryKey: ["drafts"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["pickups"] });
-
+      await queryClient.invalidateQueries({ queryKey: ["drafts"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       router.push("/drafts");
-    } catch {
-      setServerError("Terjadi kesalahan koneksi saat menyimpan draft.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setServerError(err.message);
+      } else {
+        setServerError("Terjadi kesalahan saat memproses draft");
+      }
+    } finally {
       setSubmitting(false);
     }
   };
 
-  const minWeightCluster = activeCluster?.minTotalWeightGram || 10000;
-  const baseFeeCluster = activeCluster?.basePickupFee || 25000;
-  const feePctCluster = activeCluster?.platformFeePercent || 10;
-  const simulatedTotalWeight = Math.max(minWeightCluster, watchedWeight * 4);
-  const simulatedShare =
-    watchedWeight > 0
-      ? Math.round(
-          (watchedWeight / simulatedTotalWeight) *
-            baseFeeCluster *
-            (1 + feePctCluster / 100)
-        )
-      : 0;
+  const simulatedShare = Math.round(
+    ((watchedWeight / 1000) / 10) * 20000 * 1.1
+  );
+
+  const provinceOptions = INDONESIAN_PROVINCES.map((prov) => ({
+    value: prov,
+    label: prov,
+  }));
+
+  const courierOptions = Object.entries(COURIER_LABELS).map(([k, v]) => ({
+    value: k,
+    label: v,
+    badge: k,
+  }));
+
+  const windowOptions = Object.entries(PICKUP_WINDOW_LABELS).map(
+    ([k, val]) => ({
+      value: k,
+      label: val.label,
+      description: val.timeRange,
+    })
+  );
 
   return (
-    <AppShell>
+    <AppShell
+      breadcrumbs={[
+        { label: "Draft Paket", href: "/drafts" },
+        { label: "Buat Draft Baru" },
+      ]}
+    >
       <div className="space-y-5">
-        <div className="space-y-1">
-          <Link
-            href="/drafts"
-            className="inline-flex items-center gap-1.5 text-xs text-[#626E76] hover:text-[#182126] hover:underline"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Kembali ke draft paket
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">
+              Buat Draft Paket
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Input tujuan, dimensi paket, dan tentukan jendela waktu pickup
+              bersama.
+            </p>
+          </div>
+          <Link href="/drafts">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs h-8 rounded-lg border-slate-200"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={14} strokeWidth={2} />
+              <span>Kembali ke Daftar</span>
+            </Button>
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-[#182126]">
-            Buat Draft Paket
-          </h1>
-          <p className="text-xs text-[#626E76]">
-            Masukkan data penerima, dimensi paket, dan jadwal pickup untuk dikonsolidasikan.
-          </p>
         </div>
 
-        {/* Form Container dengan Lebar Internal 720-880px agar nyaman dibaca */}
-        <div className="max-w-[800px] space-y-4">
-          {serverError && (
-            <div className="rounded border border-[#F8D2CF] bg-[#FDF2F1] p-3 text-xs font-medium text-[#911D13]">
-              {serverError}
+        {serverError && (
+          <div className="rounded-xl border border-red-200 bg-red-50/80 p-3 text-xs text-red-700">
+            {serverError}
+          </div>
+        )}
+
+        {/* Cluster indicator bar */}
+        <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-xs text-slate-700 flex flex-wrap items-center justify-between gap-2 shadow-xs">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+              <HugeiconsIcon icon={Package01Icon} size={14} strokeWidth={2} />
             </div>
-          )}
+            <div>
+              <span className="font-semibold text-slate-900">
+                Cluster Pengirim:{" "}
+              </span>
+              <span>
+                {activeCluster ? (
+                  <>
+                    {activeCluster.name} ({activeCluster.code})
+                  </>
+                ) : (
+                  "Tidak terhubung ke cluster aktif"
+                )}
+              </span>
+            </div>
+          </div>
+          <span className="text-[11px] text-slate-500">
+            Penjemputan terkoordinasi di hub pickup cluster
+          </span>
+        </div>
 
-          <div className="rounded border border-[#E3E7EA] bg-white p-5">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {/* Section 1: Penerima */}
-              <div className="space-y-3">
-                <h2 className="text-xs font-semibold text-[#182126] uppercase tracking-wider border-b border-[#E3E7EA] pb-1.5">
-                  1. Alamat Penerima
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Nama Penerima *</Label>
-                    <Input
-                      placeholder="Contoh: Budi Santoso"
-                      {...register("recipientName")}
-                    />
-                    {errors.recipientName && (
-                      <p className="text-[11px] text-[#B42318]">{errors.recipientName.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Nomor Telepon (Indonesia) *</Label>
-                    <Input
-                      placeholder="081234567890"
-                      {...register("recipientPhone")}
-                    />
-                    {errors.recipientPhone && (
-                      <p className="text-[11px] text-[#B42318]">{errors.recipientPhone.message}</p>
-                    )}
-                  </div>
-                </div>
-
+        {/* Operational Form Container */}
+        <div className="max-w-4xl">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 space-y-6 shadow-xs"
+          >
+            {/* Section 1: Informasi Penerima */}
+            <div className="space-y-3.5">
+              <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+                1. Alamat & Kontak Penerima
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
-                  <Label className="text-xs">Alamat Lengkap Tujuan *</Label>
+                  <Label className="text-xs font-medium text-slate-700">
+                    Nama Penerima *
+                  </Label>
                   <Input
-                    placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan"
-                    {...register("destinationAddress")}
+                    placeholder="Contoh: Siti Aisyah"
+                    className="rounded-lg border-slate-200"
+                    {...register("recipientName")}
                   />
-                  {errors.destinationAddress && (
-                    <p className="text-[11px] text-[#B42318]">{errors.destinationAddress.message}</p>
+                  {errors.recipientName && (
+                    <p className="text-[11px] text-red-600">
+                      {errors.recipientName.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    No. WhatsApp / HP Penerima *
+                  </Label>
+                  <Input
+                    placeholder="081234567890"
+                    className="rounded-lg border-slate-200"
+                    {...register("recipientPhone")}
+                  />
+                  {errors.recipientPhone && (
+                    <p className="text-[11px] text-red-600">
+                      {errors.recipientPhone.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-slate-700">
+                  Alamat Lengkap Tujuan *
+                </Label>
+                <Input
+                  placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan"
+                  className="rounded-lg border-slate-200"
+                  {...register("destinationAddress")}
+                />
+                {errors.destinationAddress && (
+                  <p className="text-[11px] text-red-600">
+                    {errors.destinationAddress.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Kota / Kabupaten *
+                  </Label>
+                  <Input
+                    placeholder="Bandung"
+                    className="rounded-lg border-slate-200"
+                    {...register("city")}
+                  />
+                  {errors.city && (
+                    <p className="text-[11px] text-red-600">
+                      {errors.city.message}
+                    </p>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Kota / Kabupaten *</Label>
-                    <Input placeholder="Bandung" {...register("city")} />
-                    {errors.city && (
-                      <p className="text-[11px] text-[#B42318]">{errors.city.message}</p>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Provinsi *
+                  </Label>
+                  <Controller
+                    name="province"
+                    control={control}
+                    render={({ field }) => (
+                      <CustomSelect
+                        options={provinceOptions}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Pilih Provinsi..."
+                      />
                     )}
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Provinsi *</Label>
-                    <select
-                      className="flex h-9 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-                      {...register("province")}
-                    >
-                      {INDONESIAN_PROVINCES.map((prov) => (
-                        <option key={prov} value={prov}>
-                          {prov}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Kode Pos (5 Digit) *</Label>
-                    <Input maxLength={5} placeholder="40115" {...register("postalCode")} />
-                    {errors.postalCode && (
-                      <p className="text-[11px] text-[#B42318]">{errors.postalCode.message}</p>
-                    )}
-                  </div>
+                  />
+                  {errors.province && (
+                    <p className="text-[11px] text-red-600">
+                      {errors.province.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Kode Pos (5 Digit) *
+                  </Label>
+                  <Input
+                    maxLength={5}
+                    placeholder="40115"
+                    className="rounded-lg border-slate-200"
+                    {...register("postalCode")}
+                  />
+                  {errors.postalCode && (
+                    <p className="text-[11px] text-red-600">
+                      {errors.postalCode.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Spesifikasi Paket */}
+            <div className="space-y-3.5 pt-2">
+              <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+                2. Dimensi & Berat Paket
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Berat (Gram) *
+                  </Label>
+                  <Input
+                    type="number"
+                    min={100}
+                    step={50}
+                    className="rounded-lg border-slate-200"
+                    {...register("weightGram", { valueAsNumber: true })}
+                  />
+                  {errors.weightGram && (
+                    <p className="text-[11px] text-red-600">
+                      {errors.weightGram.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Panjang (cm) *
+                  </Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    className="rounded-lg border-slate-200"
+                    {...register("lengthCm", { valueAsNumber: true })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Lebar (cm) *
+                  </Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    className="rounded-lg border-slate-200"
+                    {...register("widthCm", { valueAsNumber: true })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Tinggi (cm) *
+                  </Label>
+                  <Input
+                    type="number"
+                    step={1}
+                    className="rounded-lg border-slate-200"
+                    {...register("heightCm", { valueAsNumber: true })}
+                  />
                 </div>
               </div>
 
-              {/* Section 2: Spesifikasi Paket */}
-              <div className="space-y-3 pt-2">
-                <h2 className="text-xs font-semibold text-[#182126] uppercase tracking-wider border-b border-[#E3E7EA] pb-1.5">
-                  2. Dimensi & Berat Paket
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Berat (Gram) *</Label>
-                    <Input
-                      type="number"
-                      min={100}
-                      step={50}
-                      {...register("weightGram", { valueAsNumber: true })}
-                    />
-                    {errors.weightGram && (
-                      <p className="text-[11px] text-[#B42318]">{errors.weightGram.message}</p>
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Panjang (cm) *</Label>
-                    <Input
-                      type="number"
-                      step={1}
-                      {...register("lengthCm", { valueAsNumber: true })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Lebar (cm) *</Label>
-                    <Input
-                      type="number"
-                      step={1}
-                      {...register("widthCm", { valueAsNumber: true })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Tinggi (cm) *</Label>
-                    <Input
-                      type="number"
-                      step={1}
-                      {...register("heightCm", { valueAsNumber: true })}
-                    />
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Nilai Barang (Rp) *
+                  </Label>
+                  <Input
+                    type="number"
+                    step={5000}
+                    className="rounded-lg border-slate-200"
+                    {...register("itemValue", { valueAsNumber: true })}
+                  />
                 </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Nilai Barang (Rp) *</Label>
-                    <Input
-                      type="number"
-                      step={5000}
-                      {...register("itemValue", { valueAsNumber: true })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Catatan Khusus</Label>
-                    <Input placeholder="Fragile / Makanan kering" {...register("notes")} />
-                  </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Catatan Khusus
+                  </Label>
+                  <Input
+                    placeholder="Fragile / Makanan kering"
+                    className="rounded-lg border-slate-200"
+                    {...register("notes")}
+                  />
                 </div>
               </div>
+            </div>
 
-              {/* Section 3: Kurir & Jadwal Pickup */}
-              <div className="space-y-3 pt-2">
-                <h2 className="text-xs font-semibold text-[#182126] uppercase tracking-wider border-b border-[#E3E7EA] pb-1.5">
-                  3. Kurir & Jadwal Pickup
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs">Kurir Pilihan *</Label>
-                    <select
-                      className="flex h-9 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-                      {...register("courier")}
-                    >
-                      {Object.entries(COURIER_LABELS).map(([k, v]) => (
-                        <option key={k} value={k}>
-                          {v}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs">Tanggal Pickup *</Label>
-                    <Input type="date" {...register("pickupDate")} />
-                    {errors.pickupDate && (
-                      <p className="text-[11px] text-[#B42318]">{errors.pickupDate.message}</p>
+            {/* Section 3: Kurir & Jadwal Pickup */}
+            <div className="space-y-3.5 pt-2">
+              <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2">
+                3. Kurir & Jadwal Pickup
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Kurir Pilihan *
+                  </Label>
+                  <Controller
+                    name="courier"
+                    control={control}
+                    render={({ field }) => (
+                      <CustomSelect
+                        options={courierOptions}
+                        value={field.value}
+                        onChange={(val) =>
+                          field.onChange(
+                            val as
+                              | "JNT"
+                              | "SICEPAT"
+                              | "ANTERAJA"
+                              | "JNE"
+                              | "SHOPEE_EXPRESS"
+                              | "GOSEND_SAMEDAY"
+                          )
+                        }
+                        placeholder="Pilih Kurir..."
+                      />
                     )}
-                  </div>
+                  />
+                </div>
 
-                  <div className="space-y-1">
-                    <Label className="text-xs">Jendela Waktu *</Label>
-                    <select
-                      className="flex h-9 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-                      {...register("pickupWindow")}
-                    >
-                      {Object.entries(PICKUP_WINDOW_LABELS).map(([k, val]) => (
-                        <option key={k} value={k}>
-                          {val.label} ({val.timeRange})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Tanggal Pickup *
+                  </Label>
+                  <Input
+                    type="date"
+                    className="rounded-lg border-slate-200"
+                    {...register("pickupDate")}
+                  />
+                  {errors.pickupDate && (
+                    <p className="text-[11px] text-red-600">
+                      {errors.pickupDate.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium text-slate-700">
+                    Jendela Waktu *
+                  </Label>
+                  <Controller
+                    name="pickupWindow"
+                    control={control}
+                    render={({ field }) => (
+                      <CustomSelect
+                        options={windowOptions}
+                        value={field.value}
+                        onChange={(val) =>
+                          field.onChange(
+                            val as "MORNING" | "AFTERNOON" | "EVENING" | "NIGHT"
+                          )
+                        }
+                        placeholder="Pilih Jendela Waktu..."
+                      />
+                    )}
+                  />
                 </div>
               </div>
+            </div>
 
-              {/* Estimasi Ringkas */}
-              <div className="rounded border border-[#E3E7EA] bg-[#F8FAFA] p-3 text-xs text-[#182126] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Info className="h-4 w-4 text-[#17685F] shrink-0" />
-                  <span>
-                    Estimasi porsi tagihan paket ({formatWeight(watchedWeight)} via {COURIER_LABELS[watchedCourier]} {PICKUP_WINDOW_LABELS[watchedWindow]?.label}):
-                  </span>
-                </div>
-                <span className="font-bold tabular-nums text-[#17685F]">
-                  ~{formatRupiah(simulatedShare)}
+            {/* Estimasi Ringkas */}
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 text-xs text-slate-800 flex items-center justify-between shadow-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-700">
+                  <HugeiconsIcon
+                    icon={InformationCircleIcon}
+                    size={16}
+                    strokeWidth={2}
+                  />
+                </span>
+                <span>
+                  Estimasi porsi tagihan paket ({formatWeight(watchedWeight)}{" "}
+                  via {COURIER_LABELS[watchedCourier]}{" "}
+                  {PICKUP_WINDOW_LABELS[watchedWindow]?.label}):
                 </span>
               </div>
+              <span className="font-bold tabular-nums text-emerald-800 text-sm">
+                ~{formatRupiah(simulatedShare)}
+              </span>
+            </div>
 
-              {/* Actions */}
-              <div className="pt-2 border-t border-[#E3E7EA] flex flex-wrap items-center justify-end gap-2.5">
+            {/* Actions */}
+            <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2.5">
+              <Link href="/drafts">
                 <Button
-                  type="submit"
+                  type="button"
                   variant="outline"
                   size="sm"
-                  className="h-8 text-xs"
-                  disabled={submitting}
-                  onClick={() => setValue("saveAsDraftOnly", true)}
+                  className="h-9 px-4 rounded-lg border-slate-200 text-slate-700"
                 >
-                  Simpan Draft Saja
+                  Batal
                 </Button>
-                <Button
-                  type="submit"
-                  size="sm"
-                  className="h-8 text-xs font-semibold"
-                  disabled={submitting}
-                  onClick={() => setValue("saveAsDraftOnly", false)}
-                >
-                  {submitting ? "Menyimpan..." : "Masukkan ke Antrean Pickup"}
-                </Button>
-              </div>
-            </form>
-          </div>
+              </Link>
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="h-9 px-5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-xs hover:shadow-sm transition-all gap-1.5"
+              >
+                <HugeiconsIcon
+                  icon={CheckmarkCircle02Icon}
+                  size={16}
+                  strokeWidth={2}
+                />
+                <span>
+                  {submitting ? "Menyimpan..." : "Simpan & Gabungkan Draft"}
+                </span>
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
     </AppShell>

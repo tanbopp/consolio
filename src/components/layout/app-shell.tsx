@@ -5,26 +5,33 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Package,
-  LayoutDashboard,
-  Plus,
-  Truck,
-  History,
-  Users,
-  Settings,
-  Bell,
-  LogOut,
-  Menu,
-  X,
-  MapPin,
-  CheckCheck,
-} from "lucide-react";
+  Package01Icon,
+  LayoutDashboardIcon,
+  Add01Icon,
+  DeliveryTruck01Icon,
+  HistoryIcon,
+  UserGroupIcon,
+  Settings01Icon,
+  Notification01Icon,
+  Logout01Icon,
+  Menu01Icon,
+  Cancel01Icon,
+  Location01Icon,
+  CheckmarkCircle02Icon,
+} from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS } from "@/lib/constants";
 import { cn, formatDateId } from "@/lib/utils";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  breadcrumbs,
+}: {
+  children: React.ReactNode;
+  breadcrumbs?: { label: string; href?: string }[];
+}) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -32,7 +39,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [notifOpen, setNotifOpen] = useState(false);
 
   const user = session?.user as
-    | { id?: string; name?: string; email?: string; role?: string; storeName?: string }
+    | {
+        id?: string;
+        name?: string;
+        email?: string;
+        role?: string;
+        storeName?: string;
+      }
     | undefined;
   const role = user?.role || "SELLER";
 
@@ -78,14 +91,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     {
       href: "/dashboard",
       label: "Dashboard",
-      icon: LayoutDashboard,
+      icon: LayoutDashboardIcon,
       exact: true,
       roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN"],
     },
     {
       href: "/drafts",
       label: "Draft Paket",
-      icon: Package,
+      icon: Package01Icon,
       exact: false,
       matchPrefixes: ["/drafts"],
       roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN"],
@@ -93,14 +106,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     {
       href: "/pickups/next",
       label: "Pickup Berikutnya",
-      icon: Truck,
+      icon: DeliveryTruck01Icon,
       exact: true,
       roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN"],
     },
     {
       href: "/history",
       label: "Riwayat & Laporan",
-      icon: History,
+      icon: HistoryIcon,
       exact: false,
       matchPrefixes: ["/history", "/pickups"],
       excludePrefixes: ["/pickups/next"],
@@ -109,21 +122,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     {
       href: "/cluster-admin",
       label: "Operasional Cluster",
-      icon: Users,
+      icon: UserGroupIcon,
       exact: true,
       roles: ["CLUSTER_ADMIN", "PLATFORM_ADMIN"],
     },
     {
       href: "/cluster-admin/manage",
       label: "Manajemen Cluster",
-      icon: Settings,
+      icon: Settings01Icon,
       exact: true,
       roles: ["CLUSTER_ADMIN", "PLATFORM_ADMIN"],
     },
     {
       href: "/admin/settings",
       label: "Tarif & Fee Global",
-      icon: Settings,
+      icon: Settings01Icon,
       exact: true,
       roles: ["PLATFORM_ADMIN"],
     },
@@ -133,7 +146,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     {
       href: "/onboarding",
       label: "Profil & Cluster",
-      icon: MapPin,
+      icon: Location01Icon,
       exact: true,
       roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN"],
     },
@@ -158,94 +171,136 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F7F8] text-[#182126]">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* App Header (Full Width, 56px height) */}
-      <header className="sticky top-0 z-40 h-14 border-b border-[#E3E7EA] bg-white">
-        <div className="flex h-full w-full items-center justify-between px-4 sm:px-6">
+      <header className="sticky top-0 z-40 h-14 border-b border-slate-200/80 bg-white/95 backdrop-blur-sm">
+        <div className="flex h-full w-full items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="rounded p-1.5 text-[#626E76] hover:bg-[#F0F2F4] lg:hidden"
+              className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100 lg:hidden"
               aria-label="Buka Menu"
             >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              <HugeiconsIcon
+                icon={mobileMenuOpen ? Cancel01Icon : Menu01Icon}
+                size={20}
+                strokeWidth={2}
+              />
             </button>
 
-            {/* Logo ringkas tanpa badge tagline */}
+            {/* Logo ringkas */}
             <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded bg-[#17685F] text-white">
-                <Package className="h-4 w-4" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-xs">
+                <HugeiconsIcon icon={Package01Icon} size={18} strokeWidth={2} />
               </div>
-              <span className="text-base font-bold tracking-tight text-[#182126]">
+              <span className="text-base font-bold tracking-tight text-slate-900">
                 Consolio
               </span>
             </Link>
 
-            {/* Cluster Aktif sebagai status label faktual */}
-            <div className="hidden md:flex items-center pl-3 ml-2 border-l border-[#E3E7EA]">
-              {activeCluster ? (
+            {/* Breadcrumbs or Cluster Status */}
+            {breadcrumbs && breadcrumbs.length > 0 ? (
+              <div className="hidden sm:flex items-center gap-1.5 pl-3 ml-2 border-l border-slate-200 text-xs text-slate-500">
+                {breadcrumbs.map((crumb, idx) => (
+                  <React.Fragment key={crumb.label}>
+                    {idx > 0 && <span className="text-slate-300">/</span>}
+                    {crumb.href ? (
+                      <Link
+                        href={crumb.href}
+                        className="hover:text-slate-900 transition-colors"
+                      >
+                        {crumb.label}
+                      </Link>
+                    ) : (
+                      <span className="font-semibold text-slate-800">
+                        {crumb.label}
+                      </span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            ) : activeCluster ? (
+              <div className="hidden md:flex items-center pl-3 ml-2 border-l border-slate-200">
                 <Link
                   href="/onboarding"
-                  className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-[#626E76] hover:bg-[#F0F2F4] hover:text-[#182126] transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
                   title="Pindah atau lihat cluster"
                 >
-                  <MapPin className="h-3.5 w-3.5 text-[#17685F]" />
+                  <HugeiconsIcon
+                    icon={Location01Icon}
+                    size={14}
+                    strokeWidth={2}
+                    className="text-emerald-700"
+                  />
                   <span>
-                    Cluster: <strong className="text-[#182126]">{activeCluster.name}</strong> ({activeCluster.code})
+                    Cluster:{" "}
+                    <strong className="text-slate-900 font-semibold">
+                      {activeCluster.name}
+                    </strong>{" "}
+                    ({activeCluster.code})
                   </span>
                 </Link>
-              ) : (
-                session?.user && (
+              </div>
+            ) : (
+              session?.user && (
+                <div className="hidden md:flex items-center pl-3 ml-2 border-l border-slate-200">
                   <Link
                     href="/onboarding"
-                    className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-xs text-[#9A6700] bg-[#FEF7E6] border border-[#F9E2B6] hover:bg-[#FEEFC3]"
+                    className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs text-amber-800 bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
                   >
-                    <MapPin className="h-3.5 w-3.5" />
+                    <HugeiconsIcon
+                      icon={Location01Icon}
+                      size={13}
+                      strokeWidth={2}
+                    />
                     <span>Belum terdaftar di cluster</span>
                   </Link>
-                )
-              )}
-            </div>
+                </div>
+              )
+            )}
           </div>
 
           <div className="flex items-center gap-2">
             {/* Quick action: Buat Draft */}
             {session?.user && (
               <Link href="/drafts/new">
-                <Button size="sm" className="h-8 gap-1.5 text-xs">
-                  <Plus className="h-3.5 w-3.5" />
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-xs"
+                >
+                  <HugeiconsIcon icon={Add01Icon} size={14} strokeWidth={2.2} />
                   <span className="hidden sm:inline">Draft Paket</span>
                 </Button>
               </Link>
             )}
 
-            {/* Notifikasi Popover Ringkas */}
+            {/* Notifikasi Popover */}
             {session?.user && (
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => setNotifOpen(!notifOpen)}
-                  className="relative rounded p-2 text-[#626E76] hover:bg-[#F0F2F4] hover:text-[#182126]"
+                  className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
                   aria-label="Notifikasi"
                 >
-                  <Bell className="h-4 w-4" />
+                  <HugeiconsIcon
+                    icon={Notification01Icon}
+                    size={18}
+                    strokeWidth={2}
+                  />
                   {unreadCount > 0 && (
-                    <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#17685F] px-1 text-[10px] font-semibold text-white">
+                    <span className="absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-emerald-600 px-1 text-[10px] font-semibold text-white">
                       {unreadCount}
                     </span>
                   )}
                 </button>
 
                 {notifOpen && (
-                  <div className="absolute right-0 mt-1.5 w-80 sm:w-96 rounded border border-[#E3E7EA] bg-white shadow-lg z-50">
-                    <div className="flex items-center justify-between border-b border-[#E3E7EA] px-3.5 py-2.5 bg-[#FAFAFA]">
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-slate-200/90 bg-white shadow-lg z-50 overflow-hidden">
+                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 bg-slate-50/70">
                       <div>
-                        <p className="text-xs font-semibold text-[#182126]">
+                        <p className="text-xs font-semibold text-slate-900">
                           Notifikasi
                         </p>
                       </div>
@@ -253,16 +308,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <button
                           type="button"
                           onClick={() => markReadMutation.mutate()}
-                          className="inline-flex items-center gap-1 text-[11px] text-[#17685F] hover:underline"
+                          className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-medium hover:underline"
                         >
-                          <CheckCheck className="h-3 w-3" />
+                          <HugeiconsIcon
+                            icon={CheckmarkCircle02Icon}
+                            size={12}
+                            strokeWidth={2}
+                          />
                           Tandai dibaca
                         </button>
                       )}
                     </div>
-                    <div className="max-h-80 overflow-y-auto divide-y divide-[#E3E7EA]">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
                       {notifications.length === 0 ? (
-                        <div className="p-4 text-center text-xs text-[#8D98A0]">
+                        <div className="p-5 text-center text-xs text-slate-400">
                           Tidak ada notifikasi baru
                         </div>
                       ) : (
@@ -278,28 +337,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                             <div
                               key={n.id}
                               className={cn(
-                                "p-3 text-xs transition-colors",
-                                !n.isRead ? "bg-[#F0F7F6]" : "hover:bg-[#FAFAFA]"
+                                "p-3.5 text-xs transition-colors",
+                                !n.isRead
+                                  ? "bg-emerald-50/40"
+                                  : "hover:bg-slate-50"
                               )}
                             >
                               <div className="flex items-start justify-between gap-2">
-                                <p className="font-semibold text-[#182126]">
+                                <p className="font-semibold text-slate-900">
                                   {n.title}
                                 </p>
                                 {!n.isRead && (
-                                  <span className="h-1.5 w-1.5 rounded-full bg-[#17685F] shrink-0 mt-1" />
+                                  <span className="h-2 w-2 rounded-full bg-emerald-600 shrink-0 mt-1" />
                                 )}
                               </div>
-                              <p className="mt-1 text-[#626E76] leading-relaxed text-[11px]">
+                              <p className="mt-1 text-slate-600 leading-relaxed text-[11px]">
                                 {n.message}
                               </p>
-                              <div className="mt-1.5 flex items-center justify-between text-[11px] text-[#8D98A0]">
+                              <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
                                 <span>{formatDateId(n.createdAt)}</span>
                                 {n.link && (
                                   <Link
                                     href={n.link}
                                     onClick={() => setNotifOpen(false)}
-                                    className="font-medium text-[#17685F] hover:underline"
+                                    className="font-medium text-emerald-700 hover:underline"
                                   >
                                     Buka →
                                   </Link>
@@ -315,14 +376,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </div>
             )}
 
-            {/* Menu Akun Ringkas */}
+            {/* Menu Akun */}
             {session?.user ? (
-              <div className="flex items-center gap-2 pl-2 border-l border-[#E3E7EA]">
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
                 <div className="hidden sm:block text-right">
-                  <p className="text-xs font-semibold text-[#182126] leading-none">
+                  <p className="text-xs font-semibold text-slate-900 leading-none">
                     {user?.name}
                   </p>
-                  <p className="text-[11px] text-[#626E76] mt-0.5">
+                  <p className="text-[11px] text-slate-500 mt-0.5">
                     {ROLE_LABELS[role] || role}
                   </p>
                 </div>
@@ -330,21 +391,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                   size="sm"
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="h-8 px-2 text-[#626E76] hover:text-[#B42318]"
+                  className="h-8 w-8 p-0 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50"
                   title="Keluar dari akun"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <HugeiconsIcon icon={Logout01Icon} size={16} strokeWidth={2} />
                 </Button>
               </div>
             ) : (
               <div className="flex items-center gap-1.5">
                 <Link href="/login">
-                  <Button variant="outline" size="sm" className="h-8">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 rounded-lg border-slate-200"
+                  >
                     Masuk
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm" className="h-8">
+                  <Button
+                    size="sm"
+                    className="h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
                     Daftar
                   </Button>
                 </Link>
@@ -354,35 +422,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* Grid Layout: Sidebar 224px + Content fluid min-width: 0 */}
+      {/* Grid Layout: Sidebar 224px + Content fluid */}
       <div className="grid min-h-[calc(100vh-56px)] grid-cols-1 lg:grid-cols-[224px_minmax(0,1fr)]">
-        {/* Desktop Sidebar (Sticky, Surface Putih, Border Kanan) */}
-        <aside className="hidden lg:flex flex-col justify-between border-r border-[#E3E7EA] bg-white sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
-          <div className="p-3 space-y-4">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:flex flex-col justify-between border-r border-slate-200/80 bg-white sticky top-14 h-[calc(100vh-56px)] overflow-y-auto">
+          <div className="p-3 space-y-5">
             <div>
-              <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-[#8D98A0] uppercase">
+              <p className="px-2.5 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
                 Operasional
               </p>
-              <nav className="space-y-0.5">
+              <nav className="space-y-1">
                 {operationalItems.map((item) => {
-                  const Icon = item.icon;
                   const active = isNavActive(item);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-2.5 rounded px-2.5 py-2 text-xs font-medium transition-colors",
+                        "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-colors",
                         active
-                          ? "bg-[#EDF5F4] text-[#10534C] font-semibold"
-                          : "text-[#626E76] hover:bg-[#F6F7F8] hover:text-[#182126]"
+                          ? "bg-emerald-50 text-emerald-900 font-semibold"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       )}
                     >
-                      <Icon
-                        className={cn(
-                          "h-4 w-4 shrink-0",
-                          active ? "text-[#17685F]" : "text-[#8D98A0]"
-                        )}
+                      <HugeiconsIcon
+                        icon={item.icon}
+                        size={16}
+                        strokeWidth={active ? 2.2 : 1.8}
+                        className={active ? "text-emerald-700" : "text-slate-400"}
                       />
                       <span>{item.label}</span>
                     </Link>
@@ -392,29 +459,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <div>
-              <p className="px-2 pb-1.5 text-[11px] font-semibold tracking-wider text-[#8D98A0] uppercase">
+              <p className="px-2.5 pb-2 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">
                 Akun
               </p>
-              <nav className="space-y-0.5">
+              <nav className="space-y-1">
                 {accountItems.map((item) => {
-                  const Icon = item.icon;
                   const active = isNavActive(item);
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-2.5 rounded px-2.5 py-2 text-xs font-medium transition-colors",
+                        "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-xs font-medium transition-colors",
                         active
-                          ? "bg-[#EDF5F4] text-[#10534C] font-semibold"
-                          : "text-[#626E76] hover:bg-[#F6F7F8] hover:text-[#182126]"
+                          ? "bg-emerald-50 text-emerald-900 font-semibold"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       )}
                     >
-                      <Icon
-                        className={cn(
-                          "h-4 w-4 shrink-0",
-                          active ? "text-[#17685F]" : "text-[#8D98A0]"
-                        )}
+                      <HugeiconsIcon
+                        icon={item.icon}
+                        size={16}
+                        strokeWidth={active ? 2.2 : 1.8}
+                        className={active ? "text-emerald-700" : "text-slate-400"}
                       />
                       <span>{item.label}</span>
                     </Link>
@@ -424,19 +490,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Profil Toko Ringkas di Bagian Bawah Sidebar */}
+          {/* Profil Toko Ringkas */}
           {session?.user && (
-            <div className="border-t border-[#E3E7EA] p-3 bg-[#FAFAFA]">
+            <div className="border-t border-slate-100 p-3.5 bg-slate-50/60">
               <div className="px-1">
-                <p className="text-xs font-semibold text-[#182126] truncate">
-                  {profileData?.user?.storeName || user?.storeName || user?.name}
+                <p className="text-xs font-semibold text-slate-900 truncate">
+                  {profileData?.user?.storeName ||
+                    user?.storeName ||
+                    user?.name}
                 </p>
-                <p className="text-[11px] text-[#626E76] truncate">
+                <p className="text-[11px] text-slate-500 truncate mt-0.5">
                   {user?.email}
                 </p>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#20734D]" />
-                  <span className="text-[10px] font-medium text-[#626E76]">
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                  <span className="text-[10px] font-medium text-slate-500">
                     {ROLE_LABELS[role]}
                   </span>
                 </div>
@@ -447,24 +515,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Mobile Drawer */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-[#182126]/40 lg:hidden">
+          <div className="fixed inset-0 z-50 bg-slate-900/40 lg:hidden">
             <div className="h-full w-64 bg-white p-4 shadow-xl flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between pb-3 border-b border-[#E3E7EA]">
-                  <span className="font-bold text-[#182126] text-sm">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <span className="font-bold text-slate-900 text-sm">
                     Menu Navigasi
                   </span>
                   <button
                     type="button"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="rounded p-1 text-[#626E76] hover:bg-[#F0F2F4]"
+                    className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
                   >
-                    <X className="h-4 w-4" />
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      size={18}
+                      strokeWidth={2}
+                    />
                   </button>
                 </div>
                 <nav className="mt-3 space-y-1">
                   {[...operationalItems, ...accountItems].map((item) => {
-                    const Icon = item.icon;
                     const active = isNavActive(item);
                     return (
                       <Link
@@ -472,13 +543,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
                         className={cn(
-                          "flex items-center gap-2.5 rounded px-3 py-2 text-xs font-medium",
+                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-medium",
                           active
-                            ? "bg-[#EDF5F4] text-[#10534C] font-semibold"
-                            : "text-[#626E76] hover:bg-[#F6F7F8]"
+                            ? "bg-emerald-50 text-emerald-900 font-semibold"
+                            : "text-slate-600 hover:bg-slate-50"
                         )}
                       >
-                        <Icon className="h-4 w-4" />
+                        <HugeiconsIcon
+                          icon={item.icon}
+                          size={16}
+                          strokeWidth={active ? 2.2 : 1.8}
+                          className={
+                            active ? "text-emerald-700" : "text-slate-400"
+                          }
+                        />
                         <span>{item.label}</span>
                       </Link>
                     );
@@ -486,14 +564,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </nav>
               </div>
               {session?.user && (
-                <div className="border-t border-[#E3E7EA] pt-3">
+                <div className="border-t border-slate-100 pt-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full justify-center gap-2 text-xs"
+                    className="w-full justify-center gap-2 text-xs rounded-lg border-slate-200"
                     onClick={() => signOut({ callbackUrl: "/" })}
                   >
-                    <LogOut className="h-3.5 w-3.5" />
+                    <HugeiconsIcon
+                      icon={Logout01Icon}
+                      size={14}
+                      strokeWidth={2}
+                    />
                     Keluar Akun
                   </Button>
                 </div>
@@ -502,7 +584,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {/* Content Area fluid full-width dengan padding 28-32px di desktop */}
+        {/* Content Area */}
         <main className="min-w-0 px-4 py-5 md:px-6 lg:px-8 lg:py-7">
           {children}
         </main>

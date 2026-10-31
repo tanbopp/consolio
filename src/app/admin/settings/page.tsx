@@ -10,6 +10,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { ROLE_LABELS } from "@/lib/constants";
 import { formatRupiah, formatWeight, formatDateId } from "@/lib/utils";
 
@@ -381,23 +382,22 @@ export default function PlatformAdminSettingsPage() {
                           {u.draftCount}
                         </td>
                         <td className="py-2.5 px-4">
-                          <select
+                          <CustomSelect
                             value={u.role}
-                            onChange={(e) =>
+                            onChange={(val) =>
                               saveConfigMutation.mutate({
                                 action: "UPDATE_USER_ROLE",
                                 userId: u.id,
-                                newRole: e.target.value,
+                                newRole: val,
                               })
                             }
-                            className="rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-                          >
-                            {Object.entries(ROLE_LABELS).map(([k, v]) => (
-                              <option key={k} value={k}>
-                                {v}
-                              </option>
-                            ))}
-                          </select>
+                            options={Object.entries(ROLE_LABELS).map(([k, v]) => ({
+                              value: k,
+                              label: v,
+                            }))}
+                            triggerClassName="h-7 text-xs rounded-lg py-0 px-2"
+                            className="w-auto min-w-[140px]"
+                          />
                         </td>
                       </tr>
                     ))}

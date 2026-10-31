@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DraftStatusBadge } from "@/components/ui/badge";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { COURIER_LABELS, PICKUP_WINDOW_LABELS } from "@/lib/constants";
 import { formatWeight, formatDateId } from "@/lib/utils";
 
@@ -173,19 +174,19 @@ export default function ClusterManagePage() {
           </div>
 
           {managedClusters.length > 1 && (
-            <select
+            <CustomSelect
               value={selectedClusterId}
-              onChange={(e) => setSelectedClusterId(e.target.value)}
-              className="h-8 rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs font-semibold text-[#182126]"
-            >
-              {managedClusters.map(
-                (c: { id: string; name: string; code: string }) => (
-                  <option key={c.id} value={c.id}>
-                    Cluster: {c.name} ({c.code})
-                  </option>
-                )
+              onChange={setSelectedClusterId}
+              placeholder="Pilih Cluster..."
+              options={managedClusters.map(
+                (c: { id: string; name: string; code: string }) => ({
+                  value: c.id,
+                  label: `Cluster: ${c.name} (${c.code})`,
+                })
               )}
-            </select>
+              triggerClassName="h-8 rounded-lg text-xs font-semibold"
+              className="w-auto min-w-[220px]"
+            />
           )}
         </div>
 

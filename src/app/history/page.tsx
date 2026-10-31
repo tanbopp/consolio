@@ -13,6 +13,7 @@ import {
 import { AppShell } from "@/components/layout/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { GroupPickupStatusBadge } from "@/components/ui/badge";
 import {
   COURIER_LABELS,
@@ -193,48 +194,51 @@ export default function HistoryAndReportsPage() {
             </div>
             <div>
               <span className="text-[11px] font-medium text-[#626E76] block mb-1">Cluster</span>
-              <select
+              <CustomSelect
                 value={clusterId}
-                onChange={(e) => setClusterId(e.target.value)}
-                className="h-8 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-              >
-                <option value="">Semua cluster</option>
-                {clusters.map((c: { id: string; name: string; code: string }) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.code})
-                  </option>
-                ))}
-              </select>
+                onChange={setClusterId}
+                placeholder="Semua cluster"
+                options={[
+                  { value: "", label: "Semua cluster" },
+                  ...clusters.map((c: { id: string; name: string; code: string }) => ({
+                    value: c.id,
+                    label: `${c.name} (${c.code})`,
+                  })),
+                ]}
+                triggerClassName="h-8 text-xs rounded-lg"
+              />
             </div>
             <div>
               <span className="text-[11px] font-medium text-[#626E76] block mb-1">Kurir</span>
-              <select
+              <CustomSelect
                 value={courier}
-                onChange={(e) => setCourier(e.target.value)}
-                className="h-8 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-              >
-                <option value="">Semua kurir</option>
-                {Object.entries(COURIER_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v}
-                  </option>
-                ))}
-              </select>
+                onChange={setCourier}
+                placeholder="Semua kurir"
+                options={[
+                  { value: "", label: "Semua kurir" },
+                  ...Object.entries(COURIER_LABELS).map(([k, v]) => ({
+                    value: k,
+                    label: v,
+                  })),
+                ]}
+                triggerClassName="h-8 text-xs rounded-lg"
+              />
             </div>
             <div>
               <span className="text-[11px] font-medium text-[#626E76] block mb-1">Status</span>
-              <select
+              <CustomSelect
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="h-8 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs text-[#182126]"
-              >
-                <option value="">Semua status</option>
-                {Object.entries(GROUP_PICKUP_STATUS_CONFIG).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setStatus}
+                placeholder="Semua status"
+                options={[
+                  { value: "", label: "Semua status" },
+                  ...Object.entries(GROUP_PICKUP_STATUS_CONFIG).map(([k, v]) => ({
+                    value: k,
+                    label: v.label,
+                  })),
+                ]}
+                triggerClassName="h-8 text-xs rounded-lg"
+              />
             </div>
           </div>
         </div>
