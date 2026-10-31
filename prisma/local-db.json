@@ -740,9 +740,9 @@
       "courier": "JNT",
       "pickupDate": "2026-11-02",
       "pickupWindow": "AFTERNOON",
-      "status": "DRAFT",
+      "status": "QUEUED",
       "createdAt": "2026-10-31T09:00:00.000Z",
-      "updatedAt": "2026-10-31T09:00:00.000Z"
+      "updatedAt": "2026-10-31T07:05:11.701Z"
     },
     {
       "id": "drf-past-101-1",
@@ -1317,6 +1317,17 @@
     }
   ],
   "activityLogs": [
+    {
+      "id": "log-1793430311702-mjyg",
+      "actorId": "usr-seller-1",
+      "actorName": "Budi Santoso",
+      "actorRole": "SELLER",
+      "action": "QUEUE_DRAFT",
+      "entityType": "ShipmentDraft",
+      "entityId": "drf-draft-only-1",
+      "summary": "Budi Santoso memasukkan draft paket (Surya Saputra) ke antrean penggabungan",
+      "createdAt": "2026-10-31T07:05:11.702Z"
+    },
     {
       "id": "log-1",
       "actorId": "usr-seller-1",

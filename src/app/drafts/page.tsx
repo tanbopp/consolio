@@ -353,40 +353,30 @@ export default function MyDraftsPage() {
                     triggerClassName="h-9 text-xs rounded-lg"
                   />
                 </div>
-                className="flex h-9 w-full rounded border border-[#E3E7EA] bg-white px-2 py-1 text-xs"
-                  >
-                {Object.entries(PICKUP_WINDOW_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v.label}
-                  </option>
-                ))}
-              </select>
-          </div>
               </div>
 
-      <div className="flex justify-end gap-2 pt-2 border-t border-[#E3E7EA]">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 text-xs"
-          onClick={() => setEditingDraft(null)}
-        >
-          Batal
-        </Button>
-        <Button
-          type="submit"
-          size="sm"
-          className="h-8 text-xs"
-          disabled={actionMutation.isPending}
-        >
-          Simpan Perubahan
-        </Button>
-      </div>
-    </form>
-          </div >
-        )
-}
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#E3E7EA]">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => setEditingDraft(null)}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="h-8 text-xs"
+                  disabled={actionMutation.isPending}
+                >
+                  Simpan Perubahan
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
 
 {/* Tabel Utama Draft Paket (Table-first) */ }
 <div className="rounded border border-[#E3E7EA] bg-white overflow-hidden">

@@ -9,7 +9,6 @@ import { signIn } from "next-auth/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Package01Icon,
-  UserGroupIcon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import { registerSchema, RegisterInput } from "@/lib/validations";
