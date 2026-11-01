@@ -40,6 +40,14 @@ export function getDbState(): DatabaseState {
       const raw = fs.readFileSync(DATA_FILE_PATH, "utf-8");
       const parsed = JSON.parse(raw) as DatabaseState;
       if (parsed && Array.isArray(parsed.users) && parsed.users.length > 0) {
+        // Ensure new arrays exist in case older local-db.json is loaded
+        if (!parsed.organizations) parsed.organizations = [];
+        if (!parsed.stores) parsed.stores = [];
+        if (!parsed.products) parsed.products = [];
+        if (!parsed.orders) parsed.orders = [];
+        if (!parsed.orderItems) parsed.orderItems = [];
+        if (!parsed.deliveryBatches) parsed.deliveryBatches = [];
+        if (!parsed.courierTasks) parsed.courierTasks = [];
         return parsed;
       }
     }

@@ -76,11 +76,58 @@ export const GROUP_PICKUP_STATUS_CONFIG: Record<
   },
 };
 
+export const ORDER_STATUS_CONFIG: Record<
+  string,
+  { label: string; badgeClass: string }
+> = {
+  PENDING: {
+    label: "Menunggu Konfirmasi",
+    badgeClass: "bg-slate-100 text-slate-800 border-slate-300",
+  },
+  PREPARING: {
+    label: "Sedang Dimasak",
+    badgeClass: "bg-amber-100 text-amber-800 border-amber-300",
+  },
+  READY: {
+    label: "Siap Diambil",
+    badgeClass: "bg-blue-100 text-blue-800 border-blue-300",
+  },
+  ON_DELIVERY: {
+    label: "Sedang Diantar",
+    badgeClass: "bg-purple-100 text-purple-800 border-purple-300",
+  },
+  COMPLETED: {
+    label: "Selesai",
+    badgeClass: "bg-emerald-100 text-emerald-800 border-emerald-300",
+  },
+  CANCELLED: {
+    label: "Dibatalkan",
+    badgeClass: "bg-red-100 text-red-700 border-red-300",
+  },
+};
+
 export const ROLE_LABELS: Record<string, string> = {
-  SELLER: "Penjual UMKM",
+  SELLER: "Penjual UMKM / Kantin",
   CLUSTER_ADMIN: "Admin Cluster",
   PLATFORM_ADMIN: "Admin Aplikasi",
+  CUSTOMER: "Mahasiswa / Pembeli",
+  AGENT_COURIER: "Agent Kurir Kampus",
+  ADMIN_ORGANIZATION: "Admin Organisasi",
 };
+
+export const CAMPUS_DELIVERY_WINDOWS = [
+  { value: "12:00", label: "Makan Siang (12:00 WIB)", description: "Batch Pengantaran Siang" },
+  { value: "17:00", label: "Sore (17:00 WIB)", description: "Batch Pengantaran Sore" },
+];
+
+export const CAMPUS_BUILDINGS = [
+  { value: "Gedung A - Rektorat", label: "Gedung A - Rektorat & Administrasi" },
+  { value: "Gedung B - Fakultas Teknik", label: "Gedung B - Fakultas Teknik & Lab" },
+  { value: "Gedung C - Fakultas Ekonomi", label: "Gedung C - Fakultas Ekonomi & Bisnis" },
+  { value: "Gedung D - Perpustakaan Pusat", label: "Gedung D - Perpustakaan Pusat" },
+  { value: "Asrama Mahasiswa Putra", label: "Asrama Mahasiswa Putra (Lobby)" },
+  { value: "Asrama Mahasiswa Putri", label: "Asrama Mahasiswa Putri (Lobby)" },
+];
 
 export const BUSINESS_TYPES = [
   "Kuliner & Makanan Kering",
@@ -110,4 +157,3 @@ export const INDONESIAN_PROVINCES = [
   "Sulawesi Selatan",
   "Lainnya",
 ];
-

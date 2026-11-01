@@ -11,6 +11,41 @@ enum UserRole {
   SELLER
   CLUSTER_ADMIN
   PLATFORM_ADMIN
+  CUSTOMER
+  AGENT_COURIER
+  ADMIN_ORGANIZATION
+}
+
+enum OrganizationType {
+  MARKETPLACE
+  CAMPUS
+  COMMUNITY
+}
+
+enum StoreType {
+  KANTIN
+  SELLER_UMKM
+  RESTORAN
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+  ON_DELIVERY
+  COMPLETED
+  CANCELLED
+}
+
+enum CourierTaskType {
+  PICKUP
+  DELIVERY
+}
+
+enum CourierTaskStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
 }
 
 enum ClusterMemberStatus {
@@ -57,20 +92,155 @@ enum PaymentStatus {
   WAIVED
 }
 
-model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  passwordHash String?
-  phone        String?
-  role         UserRole @default(SELLER)
-  storeName    String?
-  businessType String?
-  address      String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model Organization {
+  id          String           @id @default(cuid())
+  name        String
+  type        OrganizationType @default(CAMPUS)
+  domain      String?          @unique
+  settings    String?          // JSON metadata: deliveryWindows, platformCut, defaultFee
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  managedClusters Cluster[]        @relation("ClusterAdmin")
+  users       User[]
+  stores      Store[]
+  orders      Order[]
+  batches     DeliveryBatch[]
+
+  @@index([type])
+}
+
+model Store {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  type           StoreType @default(KANTIN)
+  location       String    // e.g. "Kantin Pusat Lt. 1", "Ruko Blok B"
+  contactPhone   String?
+  isOpen         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  products       Product[]
+  orders         Order[]
+
+  @@index([organizationId, type])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  storeId     String
+  name        String
+  price       Int
+  weight      Int      @default(300) // gram
+  category    String?  @default("Makanan")
+  imageUrl    String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store       Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+
+  @@index([storeId, isAvailable])
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  organizationId String
+  customerId     String
+  storeId        String
+  batchId        String?
+  status         OrderStatus @default(PENDING)
+  totalPrice     Int
+  deliveryFee    Int         @default(3000)
+  deliveryWindow String      @default("12:00") // e.g. "12:00", "17:00"
+  dropoffLocation String     // e.g. "Gedung Riset Lt. 3", "Asrama Putri Kamar 204"
+  customerNotes  String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer       User           @relation("CustomerOrders", fields: [customerId], references: [id], onDelete: Cascade)
+  store          Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  batch          DeliveryBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  items          OrderItem[]
+
+  @@index([organizationId, status])
+  @@index([customerId])
+  @@index([batchId])
+  @@index([storeId, status])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  qty       Int     @default(1)
+  price     Int     // Harga satuan saat dipesan
+  notes     String?
+
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model DeliveryBatch {
+  id             String      @id @default(cuid())
+  organizationId String
+  code           String      @unique // e.g. "BATCH-20261031-1200-CAMPUS"
+  deliveryWindow String      // "12:00", "17:00"
+  status         OrderStatus @default(PENDING) // PENDING, ON_DELIVERY, COMPLETED
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders         Order[]
+  courierTasks   CourierTask[]
+
+  @@index([organizationId, deliveryWindow, status])
+}
+
+model CourierTask {
+  id         String            @id @default(cuid())
+  agentId    String
+  batchId    String
+  type       CourierTaskType   @default(DELIVERY) // PICKUP or DELIVERY
+  status     CourierTaskStatus @default(ASSIGNED)
+  targetName String            // "Kantin Bu Slamet" or "Gedung Rektorat Lt. 2"
+  address    String            // Location details
+  orderCount Int               @default(1)
+  feeEarned  Int               @default(3000)
+  sequence   Int               @default(1) // Urutan rute (1, 2, 3...)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  agent      User          @relation("AgentTasks", fields: [agentId], references: [id], onDelete: Cascade)
+  batch      DeliveryBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([agentId, status])
+  @@index([batchId])
+}
+
+model User {
+  id             String        @id @default(cuid())
+  name           String
+  email          String        @unique
+  passwordHash   String?
+  phone          String?
+  role           UserRole      @default(SELLER)
+  organizationId String?
+  storeName      String?
+  businessType   String?
+  address        String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  managedClusters Cluster[]       @relation("ClusterAdmin")
   memberships     ClusterMember[]
   shipmentDrafts  ShipmentDraft[]
   pickupItems     PickupItem[]
@@ -78,26 +248,30 @@ model User {
   notifications   Notification[]
   activityLogs    ActivityLog[]
 
+  customerOrders  Order[]       @relation("CustomerOrders")
+  courierTasks    CourierTask[] @relation("AgentTasks")
+
   @@index([email])
   @@index([role])
+  @@index([organizationId])
 }
 
 model Cluster {
-  id                  String   @id @default(cuid())
-  name                String
-  code                String   @unique
-  description         String
-  centerAddress       String
-  radiusKm            Float    @default(3.0)
-  pickupDays          String[]
-  pickupTimeWindows   String[]
-  minPackages         Int      @default(10)
-  minTotalWeightGram  Int      @default(10000)
-  basePickupFee       Int      @default(25000)
-  platformFeePercent  Float    @default(10.0)
-  adminId             String
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  name               String
+  code               String   @unique
+  description        String
+  centerAddress      String
+  radiusKm           Float    @default(3.0)
+  pickupDays         String[]
+  pickupTimeWindows  String[]
+  minPackages        Int      @default(10)
+  minTotalWeightGram Int      @default(10000)
+  basePickupFee      Int      @default(25000)
+  platformFeePercent Float    @default(10.0)
+  adminId            String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   admin          User            @relation("ClusterAdmin", fields: [adminId], references: [id])
   members        ClusterMember[]
@@ -264,4 +438,3 @@ model ActivityLog {
   @@index([entityType, entityId])
   @@index([createdAt])
 }
-

@@ -1,7 +1,13 @@
 import bcrypt from "bcryptjs";
 import { calculateGroupPickupCosts } from "@/lib/cost-calculator";
 
-export type RoleType = "SELLER" | "CLUSTER_ADMIN" | "PLATFORM_ADMIN";
+export type RoleType =
+  | "SELLER"
+  | "CLUSTER_ADMIN"
+  | "PLATFORM_ADMIN"
+  | "CUSTOMER"
+  | "AGENT_COURIER"
+  | "ADMIN_ORGANIZATION";
 export type MemberStatusType = "PENDING" | "ACTIVE" | "REJECTED";
 export type CourierType = "JNE" | "JNT" | "SICEPAT" | "ANTERAJA" | "OTHER";
 export type PickupWindowType = "MORNING" | "AFTERNOON" | "EVENING" | "NIGHT";
@@ -20,6 +26,100 @@ export type GroupPickupStatusType =
   | "CANCELLED";
 export type PaymentStatusType = "UNPAID" | "PAID" | "WAIVED";
 
+export type OrganizationType = "MARKETPLACE" | "CAMPUS" | "COMMUNITY";
+export type StoreType = "KANTIN" | "SELLER_UMKM" | "RESTORAN";
+export type OrderStatusType =
+  | "PENDING"
+  | "PREPARING"
+  | "READY"
+  | "ON_DELIVERY"
+  | "COMPLETED"
+  | "CANCELLED";
+export type CourierTaskType = "PICKUP" | "DELIVERY";
+export type CourierTaskStatusType = "ASSIGNED" | "IN_PROGRESS" | "COMPLETED";
+
+export interface OrganizationEntity {
+  id: string;
+  name: string;
+  type: OrganizationType;
+  domain?: string | null;
+  settings?: string | null;
+  createdAt: string;
+}
+
+export interface StoreEntity {
+  id: string;
+  organizationId: string;
+  name: string;
+  type: StoreType;
+  location: string;
+  contactPhone?: string | null;
+  isOpen: boolean;
+  createdAt: string;
+}
+
+export interface ProductEntity {
+  id: string;
+  storeId: string;
+  name: string;
+  price: number;
+  weight: number;
+  category?: string | null;
+  imageUrl?: string | null;
+  isAvailable: boolean;
+  createdAt: string;
+}
+
+export interface OrderEntity {
+  id: string;
+  organizationId: string;
+  customerId: string;
+  storeId: string;
+  batchId?: string | null;
+  status: OrderStatusType;
+  totalPrice: number;
+  deliveryFee: number;
+  deliveryWindow: string;
+  dropoffLocation: string;
+  customerNotes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderItemEntity {
+  id: string;
+  orderId: string;
+  productId: string;
+  qty: number;
+  price: number;
+  notes?: string | null;
+}
+
+export interface DeliveryBatchEntity {
+  id: string;
+  organizationId: string;
+  code: string;
+  deliveryWindow: string;
+  status: OrderStatusType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourierTaskEntity {
+  id: string;
+  agentId: string;
+  batchId: string;
+  type: CourierTaskType;
+  status: CourierTaskStatusType;
+  targetName: string;
+  address: string;
+  orderCount: number;
+  feeEarned: number;
+  sequence: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UserEntity {
   id: string;
   name: string;
@@ -27,6 +127,7 @@ export interface UserEntity {
   passwordHash: string;
   phone: string;
   role: RoleType;
+  organizationId?: string | null;
   storeName: string;
   businessType: string;
   address: string;
@@ -175,6 +276,13 @@ export interface DatabaseState {
   notifications: NotificationEntity[];
   activityLogs: ActivityLogEntity[];
   platformConfig: PlatformConfigEntity;
+  organizations: OrganizationEntity[];
+  stores: StoreEntity[];
+  products: ProductEntity[];
+  orders: OrderEntity[];
+  orderItems: OrderItemEntity[];
+  deliveryBatches: DeliveryBatchEntity[];
+  courierTasks: CourierTaskEntity[];
 }
 
 export function buildInitialSeedData(): DatabaseState {
@@ -346,6 +454,59 @@ export function buildInitialSeedData(): DatabaseState {
       businessType: "Kebutuhan Rumah Tangga",
       address: "Komplek Griya Asri Blok F1 No. 9, Depok",
       createdAt: "2026-10-12T08:00:00.000Z",
+    },
+    // Akun Baru untuk B2B2C Kampus & Agent Kurir
+    {
+      id: "usr-student-1",
+      name: "Rizky Pratama",
+      email: "mahasiswa@campus.ac.id",
+      passwordHash,
+      phone: "081299990001",
+      role: "CUSTOMER",
+      organizationId: "org-campus-ui",
+      storeName: "",
+      businessType: "Mahasiswa Fakultas Teknik",
+      address: "Gedung B Teknik Informatika Lt. 3",
+      createdAt: "2026-10-15T08:00:00.000Z",
+    },
+    {
+      id: "usr-agent-1",
+      name: "Ahmad Dani (Kurir Kampus)",
+      email: "kurir@campus.ac.id",
+      passwordHash,
+      phone: "081299990002",
+      role: "AGENT_COURIER",
+      organizationId: "org-campus-ui",
+      storeName: "Agent Armada Cepat Kampus",
+      businessType: "Kurir Paruh Waktu Mahasiswa",
+      address: "Asrama Mahasiswa Putra Kamar 102",
+      createdAt: "2026-10-15T09:00:00.000Z",
+    },
+    {
+      id: "usr-kantin-1",
+      name: "Ibu Slamet",
+      email: "kantin@campus.ac.id",
+      passwordHash,
+      phone: "081299990003",
+      role: "SELLER",
+      organizationId: "org-campus-ui",
+      storeName: "Kantin Bu Slamet",
+      businessType: "Kantin Masakan Rumahan & Nasi Rames",
+      address: "Kantin Pusat Kampus Kios No. 04",
+      createdAt: "2026-10-15T10:00:00.000Z",
+    },
+    {
+      id: "usr-admin-org-1",
+      name: "Admin B2B Marketplace Hub",
+      email: "b2b@marketplace.id",
+      passwordHash,
+      phone: "081188887777",
+      role: "ADMIN_ORGANIZATION",
+      organizationId: "org-shopee-jkt",
+      storeName: "Shopee Hub Logistik Area",
+      businessType: "E-Commerce Logistics Integrator",
+      address: "Shopee Distribution Hub, Cilandak, Jakarta Selatan",
+      createdAt: "2026-10-15T11:00:00.000Z",
     },
   ];
 
@@ -845,6 +1006,349 @@ export function buildInitialSeedData(): DatabaseState {
     },
   ];
 
+  // Organisasi B2B2C (Kampus & Marketplace Hub)
+  const organizations: OrganizationEntity[] = [
+    {
+      id: "org-campus-ui",
+      name: "Universitas Indonesia - Depok Campus",
+      type: "CAMPUS",
+      domain: "campus.ac.id",
+      settings: JSON.stringify({
+        deliveryWindows: ["12:00", "17:00"],
+        defaultDeliveryFee: 3000,
+        courierFeeCut: 2500,
+        platformCut: 500,
+      }),
+      createdAt: "2026-10-10T08:00:00.000Z",
+    },
+    {
+      id: "org-shopee-jkt",
+      name: "Shopee Express Hub - Jakarta Selatan",
+      type: "MARKETPLACE",
+      domain: "shopee-hub.example.com",
+      settings: JSON.stringify({
+        webhookSecret: "spx-live-secret-consolio-2026",
+        clusterTargetCode: "GRIYA01",
+        manifestPrefix: "MNF-SPX",
+      }),
+      createdAt: "2026-10-10T08:00:00.000Z",
+    },
+  ];
+
+  // Store / Kantin / Restoran
+  const stores: StoreEntity[] = [
+    {
+      id: "store-kantin-1",
+      organizationId: "org-campus-ui",
+      name: "Kantin Bu Slamet",
+      type: "KANTIN",
+      location: "Kantin Pusat Lt. 1, Kios No. 04",
+      contactPhone: "081299990003",
+      isOpen: true,
+      createdAt: "2026-10-11T08:00:00.000Z",
+    },
+    {
+      id: "store-kantin-2",
+      organizationId: "org-campus-ui",
+      name: "Ayam Geprek Mas Kris",
+      type: "KANTIN",
+      location: "Kantin Teknik (Kansat) Lt. Dasar",
+      contactPhone: "081299990004",
+      isOpen: true,
+      createdAt: "2026-10-11T08:30:00.000Z",
+    },
+    {
+      id: "store-kantin-3",
+      organizationId: "org-campus-ui",
+      name: "Kopi & Toast Mahasiswa",
+      type: "KANTIN",
+      location: "Kantin Perpustakaan Pusat (Lakeside)",
+      contactPhone: "081299990005",
+      isOpen: true,
+      createdAt: "2026-10-11T09:00:00.000Z",
+    },
+    {
+      id: "store-spx-griya",
+      organizationId: "org-shopee-jkt",
+      name: "Sentra Mitra Shopee Griya Asri",
+      type: "SELLER_UMKM",
+      location: "Balai Warga RW 08, Griya Asri",
+      contactPhone: "081211112222",
+      isOpen: true,
+      createdAt: "2026-10-11T09:30:00.000Z",
+    },
+  ];
+
+  // Products
+  const products: ProductEntity[] = [
+    {
+      id: "prod-1",
+      storeId: "store-kantin-1",
+      name: "Nasi Ayam Bakar Madu + Lalapan & Sambal",
+      price: 18000,
+      weight: 350,
+      category: "Makanan Utama",
+      imageUrl: "🍗",
+      isAvailable: true,
+      createdAt: "2026-10-12T08:00:00.000Z",
+    },
+    {
+      id: "prod-2",
+      storeId: "store-kantin-1",
+      name: "Nasi Rames Rendang Daging",
+      price: 22000,
+      weight: 400,
+      category: "Makanan Utama",
+      imageUrl: "🍛",
+      isAvailable: true,
+      createdAt: "2026-10-12T08:00:00.000Z",
+    },
+    {
+      id: "prod-3",
+      storeId: "store-kantin-1",
+      name: "Es Teh Manis Jumbo",
+      price: 5000,
+      weight: 400,
+      category: "Minuman",
+      imageUrl: "🧋",
+      isAvailable: true,
+      createdAt: "2026-10-12T08:00:00.000Z",
+    },
+    {
+      id: "prod-4",
+      storeId: "store-kantin-2",
+      name: "Ayam Geprek Keju Leleh Level 3 + Nasi",
+      price: 20000,
+      weight: 380,
+      category: "Makanan Utama",
+      imageUrl: "🧀",
+      isAvailable: true,
+      createdAt: "2026-10-12T08:00:00.000Z",
+    },
+    {
+      id: "prod-5",
+      storeId: "store-kantin-2",
+      name: "Tahu & Tempe Crispy Sambal Bawang",
+      price: 8000,
+      weight: 200,
+      category: "Snack & Lauk",
+      imageUrl: "🥟",
+      isAvailable: true,
+      createdAt: "2026-10-12T08:00:00.000Z",
+    },
+    {
+      id: "prod-6",
+      storeId: "store-kantin-3",
+      name: "Es Kopi Susu Gula Aren Single Shot",
+      price: 14000,
+      weight: 350,
+      category: "Minuman",
+      imageUrl: "☕",
+      isAvailable: true,
+      createdAt: "2026-10-12T08:00:00.000Z",
+    },
+    {
+      id: "prod-7",
+      storeId: "store-kantin-3",
+      name: "Roti Bakar Coklat Keju Susu",
+      price: 15000,
+      weight: 250,
+      category: "Snack & Roti",
+      imageUrl: "🥪",
+      isAvailable: true,
+      createdAt: "2026-10-12T08:00:00.000Z",
+    },
+  ];
+
+  // Delivery Batches
+  const deliveryBatches: DeliveryBatchEntity[] = [
+    {
+      id: "batch-camp-1200",
+      organizationId: "org-campus-ui",
+      code: "BATCH-CAMPUS-1200",
+      deliveryWindow: "12:00",
+      status: "PENDING",
+      createdAt: "2026-10-31T08:00:00.000Z",
+      updatedAt: "2026-10-31T09:00:00.000Z",
+    },
+    {
+      id: "batch-camp-1700",
+      organizationId: "org-campus-ui",
+      code: "BATCH-CAMPUS-1700",
+      deliveryWindow: "17:00",
+      status: "PENDING",
+      createdAt: "2026-10-31T08:00:00.000Z",
+      updatedAt: "2026-10-31T09:00:00.000Z",
+    },
+  ];
+
+  // Orders
+  const orders: OrderEntity[] = [
+    {
+      id: "ord-camp-1",
+      organizationId: "org-campus-ui",
+      customerId: "usr-student-1",
+      storeId: "store-kantin-1",
+      batchId: "batch-camp-1200",
+      status: "READY",
+      totalPrice: 23000,
+      deliveryFee: 3000,
+      deliveryWindow: "12:00",
+      dropoffLocation: "Gedung B - Fakultas Teknik",
+      customerNotes: "Titip di satpam lobby depan",
+      createdAt: "2026-10-31T09:15:00.000Z",
+      updatedAt: "2026-10-31T09:40:00.000Z",
+    },
+    {
+      id: "ord-camp-2",
+      organizationId: "org-campus-ui",
+      customerId: "usr-student-1",
+      storeId: "store-kantin-1",
+      batchId: "batch-camp-1200",
+      status: "READY",
+      totalPrice: 22000,
+      deliveryFee: 3000,
+      deliveryWindow: "12:00",
+      dropoffLocation: "Gedung A - Rektorat",
+      customerNotes: "Lantai 2 Ruang Kemahasiswaan",
+      createdAt: "2026-10-31T09:20:00.000Z",
+      updatedAt: "2026-10-31T09:45:00.000Z",
+    },
+    {
+      id: "ord-camp-3",
+      organizationId: "org-campus-ui",
+      customerId: "usr-student-1",
+      storeId: "store-kantin-2",
+      batchId: "batch-camp-1200",
+      status: "READY",
+      totalPrice: 28000,
+      deliveryFee: 3000,
+      deliveryWindow: "12:00",
+      dropoffLocation: "Gedung D - Perpustakaan Pusat",
+      customerNotes: "Depan meja loker penitipan tas",
+      createdAt: "2026-10-31T09:25:00.000Z",
+      updatedAt: "2026-10-31T09:50:00.000Z",
+    },
+  ];
+
+  // Order Items
+  const orderItems: OrderItemEntity[] = [
+    {
+      id: "item-1",
+      orderId: "ord-camp-1",
+      productId: "prod-1",
+      qty: 1,
+      price: 18000,
+      notes: "Sambal dipisah ya bu",
+    },
+    {
+      id: "item-2",
+      orderId: "ord-camp-1",
+      productId: "prod-3",
+      qty: 1,
+      price: 5000,
+      notes: "Es sedikit saja",
+    },
+    {
+      id: "item-3",
+      orderId: "ord-camp-2",
+      productId: "prod-2",
+      qty: 1,
+      price: 22000,
+      notes: "Kuah rendang banyakan",
+    },
+    {
+      id: "item-4",
+      orderId: "ord-camp-3",
+      productId: "prod-4",
+      qty: 1,
+      price: 20000,
+      notes: "Level 1 saja",
+    },
+    {
+      id: "item-5",
+      orderId: "ord-camp-3",
+      productId: "prod-5",
+      qty: 1,
+      price: 8000,
+      notes: "Goreng garing",
+    },
+  ];
+
+  // Courier Tasks
+  const courierTasks: CourierTaskEntity[] = [
+    {
+      id: "task-1",
+      agentId: "usr-agent-1",
+      batchId: "batch-camp-1200",
+      type: "PICKUP",
+      status: "ASSIGNED",
+      targetName: "Kantin Bu Slamet",
+      address: "Kantin Pusat Lt. 1 Kios No. 04",
+      orderCount: 2,
+      feeEarned: 2500,
+      sequence: 1,
+      createdAt: "2026-10-31T09:50:00.000Z",
+      updatedAt: "2026-10-31T09:50:00.000Z",
+    },
+    {
+      id: "task-2",
+      agentId: "usr-agent-1",
+      batchId: "batch-camp-1200",
+      type: "PICKUP",
+      status: "ASSIGNED",
+      targetName: "Ayam Geprek Mas Kris",
+      address: "Kantin Teknik Lt. Dasar",
+      orderCount: 1,
+      feeEarned: 2500,
+      sequence: 2,
+      createdAt: "2026-10-31T09:50:00.000Z",
+      updatedAt: "2026-10-31T09:50:00.000Z",
+    },
+    {
+      id: "task-3",
+      agentId: "usr-agent-1",
+      batchId: "batch-camp-1200",
+      type: "DELIVERY",
+      status: "ASSIGNED",
+      targetName: "Gedung A - Rektorat",
+      address: "Lantai 2 Ruang Kemahasiswaan",
+      orderCount: 1,
+      feeEarned: 2500,
+      sequence: 3,
+      createdAt: "2026-10-31T09:50:00.000Z",
+      updatedAt: "2026-10-31T09:50:00.000Z",
+    },
+    {
+      id: "task-4",
+      agentId: "usr-agent-1",
+      batchId: "batch-camp-1200",
+      type: "DELIVERY",
+      status: "ASSIGNED",
+      targetName: "Gedung B - Fakultas Teknik",
+      address: "Lobby Gedung B Teknik",
+      orderCount: 1,
+      feeEarned: 2500,
+      sequence: 4,
+      createdAt: "2026-10-31T09:50:00.000Z",
+      updatedAt: "2026-10-31T09:50:00.000Z",
+    },
+    {
+      id: "task-5",
+      agentId: "usr-agent-1",
+      batchId: "batch-camp-1200",
+      type: "DELIVERY",
+      status: "ASSIGNED",
+      targetName: "Gedung D - Perpustakaan Pusat",
+      address: "Loker Depan Perpustakaan",
+      orderCount: 1,
+      feeEarned: 2500,
+      sequence: 5,
+      createdAt: "2026-10-31T09:50:00.000Z",
+      updatedAt: "2026-10-31T09:50:00.000Z",
+    },
+  ];
+
   return {
     users,
     clusters,
@@ -864,6 +1368,13 @@ export function buildInitialSeedData(): DatabaseState {
       soloPickupEstimateRp: 15000,
       updatedAt: now.toISOString(),
     },
+    organizations,
+    stores,
+    products,
+    orders,
+    orderItems,
+    deliveryBatches,
+    courierTasks,
   };
 }
 

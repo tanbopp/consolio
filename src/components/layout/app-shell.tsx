@@ -88,16 +88,61 @@ export function AppShell({
 
   // Navigasi dikelompokkan: Operasional & Pengaturan
   const operationalItems = [
+    // Customer (Mahasiswa)
+    {
+      href: "/campus",
+      label: "Pesan Makanan",
+      icon: Package01Icon,
+      exact: true,
+      roles: ["CUSTOMER"],
+    },
+    {
+      href: "/campus/orders",
+      label: "Lacak & Riwayat Pesanan",
+      icon: HistoryIcon,
+      exact: true,
+      roles: ["CUSTOMER"],
+    },
+
+    // Agent Kurir
+    {
+      href: "/campus/agent",
+      label: "Tugas Antar Hari Ini",
+      icon: DeliveryTruck01Icon,
+      exact: true,
+      roles: ["AGENT_COURIER"],
+    },
+
+    // Kantin / Restoran
+    {
+      href: "/campus/kantin",
+      label: "Pesanan Kantin Masuk",
+      icon: LayoutDashboardIcon,
+      exact: true,
+      roles: ["SELLER"],
+    },
+
+    // B2B Marketplace Hub & Integrasi
+    {
+      href: "/marketplace/docs",
+      label: "Marketplace Hub (B2B)",
+      icon: Settings01Icon,
+      exact: false,
+      matchPrefixes: ["/marketplace"],
+      roles: ["PLATFORM_ADMIN", "ADMIN_ORGANIZATION", "CLUSTER_ADMIN"],
+    },
+
+    // Menu Reguler UMKM & Cluster
     {
       href: "/dashboard",
       label: "Dashboard",
       icon: LayoutDashboardIcon,
       exact: true,
-      roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN"],
+      roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN", "ADMIN_ORGANIZATION"],
     },
     {
       href: "/drafts",
-      label: "Draft Paket",
+      label: "Draft Paket UMKM",
       icon: Package01Icon,
       exact: false,
       matchPrefixes: ["/drafts"],
@@ -117,7 +162,7 @@ export function AppShell({
       exact: false,
       matchPrefixes: ["/history", "/pickups"],
       excludePrefixes: ["/pickups/next"],
-      roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN"],
+      roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN", "ADMIN_ORGANIZATION"],
     },
     {
       href: "/cluster-admin",
@@ -148,7 +193,7 @@ export function AppShell({
       label: "Profil & Cluster",
       icon: Location01Icon,
       exact: true,
-      roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN"],
+      roles: ["SELLER", "CLUSTER_ADMIN", "PLATFORM_ADMIN", "ADMIN_ORGANIZATION", "CUSTOMER", "AGENT_COURIER"],
     },
   ].filter((item) => item.roles.includes(role));
 

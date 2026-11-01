@@ -261,6 +261,93 @@ export default function LoginPage() {
                   </div>
                   <span className="font-semibold text-teal-700">Masuk →</span>
                 </button>
+
+                {/* Role Baru: B2B2C Kampus & Agent Kurir */}
+                <div className="pt-2 border-t border-slate-100">
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                    Mode B2B2C & Kampus On-Demand
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => quickDemoLogin("mahasiswa@campus.ac.id", "/campus")}
+                  className="flex items-center justify-between rounded-lg border border-teal-300 bg-teal-50/90 p-2.5 text-left text-xs hover:bg-teal-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Store className="h-4 w-4 text-teal-700 shrink-0" />
+                    <div>
+                      <p className="font-bold text-teal-950">
+                        Rizky Pratama (Mahasiswa / Customer)
+                      </p>
+                      <p className="text-[11px] text-teal-700">
+                        mahasiswa@campus.ac.id • Pesan Makanan Kantin & Tracking
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-teal-800">Masuk →</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => quickDemoLogin("kurir@campus.ac.id", "/campus/agent")}
+                  className="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50/80 p-2.5 text-left text-xs hover:bg-purple-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-purple-700 shrink-0" />
+                    <div>
+                      <p className="font-bold text-purple-950">
+                        Ahmad Dani (Agent Kurir Kampus)
+                      </p>
+                      <p className="text-[11px] text-purple-700">
+                        kurir@campus.ac.id • Tugas Multi-Drop, Peta Rute & Fee
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-purple-800">Masuk →</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => quickDemoLogin("kantin@campus.ac.id", "/campus/kantin")}
+                  className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/80 p-2.5 text-left text-xs hover:bg-amber-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Store className="h-4 w-4 text-amber-700 shrink-0" />
+                    <div>
+                      <p className="font-bold text-amber-950">
+                        Ibu Slamet (Seller / Kantin Pusat)
+                      </p>
+                      <p className="text-[11px] text-amber-800">
+                        kantin@campus.ac.id • Terima Pesanan & Tandai Siap Ambil
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-amber-800">Masuk →</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => quickDemoLogin("b2b@marketplace.id", "/marketplace/docs")}
+                  className="flex items-center justify-between rounded-lg border border-indigo-200 bg-indigo-50/80 p-2.5 text-left text-xs hover:bg-indigo-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-indigo-700 shrink-0" />
+                    <div>
+                      <p className="font-bold text-indigo-950">
+                        Admin B2B Marketplace Hub (Shopee / Tokopedia)
+                      </p>
+                      <p className="text-[11px] text-indigo-800">
+                        b2b@marketplace.id • Webhook API & Manifest Pengambilan
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-indigo-800">Masuk →</span>
+                </button>
               </div>
             </div>
 

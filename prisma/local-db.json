@@ -4,7 +4,7 @@
       "id": "usr-admin-platform",
       "name": "Bagus Pratama (Admin Consolio)",
       "email": "admin@consolio.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081110002000",
       "role": "PLATFORM_ADMIN",
       "storeName": "Consolio HQ",
@@ -16,7 +16,7 @@
       "id": "usr-admin-cluster-1",
       "name": "Hendra Wijaya",
       "email": "hendra@griyaasri.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081211112222",
       "role": "CLUSTER_ADMIN",
       "storeName": "Posko UMKM Griya Asri",
@@ -28,7 +28,7 @@
       "id": "usr-admin-cluster-2",
       "name": "Dewi Kartika",
       "email": "dewi@kampusmargonda.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081233334444",
       "role": "CLUSTER_ADMIN",
       "storeName": "Sentra Kos & UMKM Margonda",
@@ -40,7 +40,7 @@
       "id": "usr-seller-1",
       "name": "Budi Santoso",
       "email": "budi@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010001",
       "role": "SELLER",
       "storeName": "Keripik Pedas Kang Budi",
@@ -52,7 +52,7 @@
       "id": "usr-seller-2",
       "name": "Sinta Maharani",
       "email": "sinta@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010002",
       "role": "SELLER",
       "storeName": "Sinta Hijab & Scarf",
@@ -64,7 +64,7 @@
       "id": "usr-seller-3",
       "name": "Rina Wulandari",
       "email": "rina@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010003",
       "role": "SELLER",
       "storeName": "Rina Craft Rajut",
@@ -76,7 +76,7 @@
       "id": "usr-seller-4",
       "name": "Agus Setiawan",
       "email": "agus@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010004",
       "role": "SELLER",
       "storeName": "Kopi Sangrai Mas Agus",
@@ -88,7 +88,7 @@
       "id": "usr-seller-5",
       "name": "Lestari Putri",
       "email": "lestari@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010005",
       "role": "SELLER",
       "storeName": "Tari Natural Skincare",
@@ -100,7 +100,7 @@
       "id": "usr-seller-6",
       "name": "Fajar Nugroho",
       "email": "fajar@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010006",
       "role": "SELLER",
       "storeName": "Fajar Gadget Casing",
@@ -112,7 +112,7 @@
       "id": "usr-seller-7",
       "name": "Nadia Safitri",
       "email": "nadia@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010007",
       "role": "SELLER",
       "storeName": "NadiaPreloved & Buku Kampus",
@@ -124,7 +124,7 @@
       "id": "usr-seller-8",
       "name": "Reza Kurniawan",
       "email": "reza@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010008",
       "role": "SELLER",
       "storeName": "Sambal Roa Bang Reza",
@@ -136,7 +136,7 @@
       "id": "usr-seller-9",
       "name": "Maya Anggraini",
       "email": "maya@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010009",
       "role": "SELLER",
       "storeName": "Maya Tote Bag Kanvas",
@@ -148,13 +148,65 @@
       "id": "usr-seller-10",
       "name": "Dedi Kurnia",
       "email": "dedi@umkm.id",
-      "passwordHash": "$2b$08$r/wJMNYASi4QRcnts5Xu0eCvDS1KA7UYEW.pp6HgG0NJC1U.SaUUy",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
       "phone": "081310010010",
       "role": "SELLER",
       "storeName": "Dedi Herbal Nusantara",
       "businessType": "Kebutuhan Rumah Tangga",
       "address": "Komplek Griya Asri Blok F1 No. 9, Depok",
       "createdAt": "2026-10-12T08:00:00.000Z"
+    },
+    {
+      "id": "usr-student-1",
+      "name": "Rizky Pratama",
+      "email": "mahasiswa@campus.ac.id",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
+      "phone": "081299990001",
+      "role": "CUSTOMER",
+      "organizationId": "org-campus-ui",
+      "storeName": "",
+      "businessType": "Mahasiswa Fakultas Teknik",
+      "address": "Gedung B Teknik Informatika Lt. 3",
+      "createdAt": "2026-10-15T08:00:00.000Z"
+    },
+    {
+      "id": "usr-agent-1",
+      "name": "Ahmad Dani (Kurir Kampus)",
+      "email": "kurir@campus.ac.id",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
+      "phone": "081299990002",
+      "role": "AGENT_COURIER",
+      "organizationId": "org-campus-ui",
+      "storeName": "Agent Armada Cepat Kampus",
+      "businessType": "Kurir Paruh Waktu Mahasiswa",
+      "address": "Asrama Mahasiswa Putra Kamar 102",
+      "createdAt": "2026-10-15T09:00:00.000Z"
+    },
+    {
+      "id": "usr-kantin-1",
+      "name": "Ibu Slamet",
+      "email": "kantin@campus.ac.id",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
+      "phone": "081299990003",
+      "role": "SELLER",
+      "organizationId": "org-campus-ui",
+      "storeName": "Kantin Bu Slamet",
+      "businessType": "Kantin Masakan Rumahan & Nasi Rames",
+      "address": "Kantin Pusat Kampus Kios No. 04",
+      "createdAt": "2026-10-15T10:00:00.000Z"
+    },
+    {
+      "id": "usr-admin-org-1",
+      "name": "Admin B2B Marketplace Hub",
+      "email": "b2b@marketplace.id",
+      "passwordHash": "$2b$08$jJpDhkXKs4I7.Iw6XmvIjO6eOHv4UE7id8t/IlKTZ8yQgCYdiQDoO",
+      "phone": "081188887777",
+      "role": "ADMIN_ORGANIZATION",
+      "organizationId": "org-shopee-jkt",
+      "storeName": "Shopee Hub Logistik Area",
+      "businessType": "E-Commerce Logistics Integrator",
+      "address": "Shopee Distribution Hub, Cilandak, Jakarta Selatan",
+      "createdAt": "2026-10-15T11:00:00.000Z"
     }
   ],
   "clusters": [
@@ -740,9 +792,9 @@
       "courier": "JNT",
       "pickupDate": "2026-11-02",
       "pickupWindow": "AFTERNOON",
-      "status": "QUEUED",
+      "status": "DRAFT",
       "createdAt": "2026-10-31T09:00:00.000Z",
-      "updatedAt": "2026-10-31T07:05:11.701Z"
+      "updatedAt": "2026-10-31T09:00:00.000Z"
     },
     {
       "id": "drf-past-101-1",
@@ -1289,7 +1341,7 @@
       "message": "Grup pengiriman J&T Express untuk besok Sore di Komplek Griya Asri telah mencapai 12 paket (15 kg). Status draft Anda kini SIAP PICKUP.",
       "type": "SUCCESS",
       "link": "/pickups/next",
-      "isRead": true,
+      "isRead": false,
       "whatsappStatus": "QUEUED_FOR_WA_GATEWAY",
       "createdAt": "2026-10-31T09:00:00.000Z"
     },
@@ -1317,17 +1369,6 @@
     }
   ],
   "activityLogs": [
-    {
-      "id": "log-1793430311702-mjyg",
-      "actorId": "usr-seller-1",
-      "actorName": "Budi Santoso",
-      "actorRole": "SELLER",
-      "action": "QUEUE_DRAFT",
-      "entityType": "ShipmentDraft",
-      "entityId": "drf-draft-only-1",
-      "summary": "Budi Santoso memasukkan draft paket (Surya Saputra) ke antrean penggabungan",
-      "createdAt": "2026-10-31T07:05:11.702Z"
-    },
     {
       "id": "log-1",
       "actorId": "usr-seller-1",
@@ -1373,5 +1414,325 @@
     "defaultMinWeightGram": 10000,
     "soloPickupEstimateRp": 15000,
     "updatedAt": "2026-10-31T09:00:00.000Z"
-  }
+  },
+  "organizations": [
+    {
+      "id": "org-campus-ui",
+      "name": "Universitas Indonesia - Depok Campus",
+      "type": "CAMPUS",
+      "domain": "campus.ac.id",
+      "settings": "{\"deliveryWindows\":[\"12:00\",\"17:00\"],\"defaultDeliveryFee\":3000,\"courierFeeCut\":2500,\"platformCut\":500}",
+      "createdAt": "2026-10-10T08:00:00.000Z"
+    },
+    {
+      "id": "org-shopee-jkt",
+      "name": "Shopee Express Hub - Jakarta Selatan",
+      "type": "MARKETPLACE",
+      "domain": "shopee-hub.example.com",
+      "settings": "{\"webhookSecret\":\"spx-live-secret-consolio-2026\",\"clusterTargetCode\":\"GRIYA01\",\"manifestPrefix\":\"MNF-SPX\"}",
+      "createdAt": "2026-10-10T08:00:00.000Z"
+    }
+  ],
+  "stores": [
+    {
+      "id": "store-kantin-1",
+      "organizationId": "org-campus-ui",
+      "name": "Kantin Bu Slamet",
+      "type": "KANTIN",
+      "location": "Kantin Pusat Lt. 1, Kios No. 04",
+      "contactPhone": "081299990003",
+      "isOpen": true,
+      "createdAt": "2026-10-11T08:00:00.000Z"
+    },
+    {
+      "id": "store-kantin-2",
+      "organizationId": "org-campus-ui",
+      "name": "Ayam Geprek Mas Kris",
+      "type": "KANTIN",
+      "location": "Kantin Teknik (Kansat) Lt. Dasar",
+      "contactPhone": "081299990004",
+      "isOpen": true,
+      "createdAt": "2026-10-11T08:30:00.000Z"
+    },
+    {
+      "id": "store-kantin-3",
+      "organizationId": "org-campus-ui",
+      "name": "Kopi & Toast Mahasiswa",
+      "type": "KANTIN",
+      "location": "Kantin Perpustakaan Pusat (Lakeside)",
+      "contactPhone": "081299990005",
+      "isOpen": true,
+      "createdAt": "2026-10-11T09:00:00.000Z"
+    },
+    {
+      "id": "store-spx-griya",
+      "organizationId": "org-shopee-jkt",
+      "name": "Sentra Mitra Shopee Griya Asri",
+      "type": "SELLER_UMKM",
+      "location": "Balai Warga RW 08, Griya Asri",
+      "contactPhone": "081211112222",
+      "isOpen": true,
+      "createdAt": "2026-10-11T09:30:00.000Z"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-1",
+      "storeId": "store-kantin-1",
+      "name": "Nasi Ayam Bakar Madu + Lalapan & Sambal",
+      "price": 18000,
+      "weight": 350,
+      "category": "Makanan Utama",
+      "imageUrl": "🍗",
+      "isAvailable": true,
+      "createdAt": "2026-10-12T08:00:00.000Z"
+    },
+    {
+      "id": "prod-2",
+      "storeId": "store-kantin-1",
+      "name": "Nasi Rames Rendang Daging",
+      "price": 22000,
+      "weight": 400,
+      "category": "Makanan Utama",
+      "imageUrl": "🍛",
+      "isAvailable": true,
+      "createdAt": "2026-10-12T08:00:00.000Z"
+    },
+    {
+      "id": "prod-3",
+      "storeId": "store-kantin-1",
+      "name": "Es Teh Manis Jumbo",
+      "price": 5000,
+      "weight": 400,
+      "category": "Minuman",
+      "imageUrl": "🧋",
+      "isAvailable": true,
+      "createdAt": "2026-10-12T08:00:00.000Z"
+    },
+    {
+      "id": "prod-4",
+      "storeId": "store-kantin-2",
+      "name": "Ayam Geprek Keju Leleh Level 3 + Nasi",
+      "price": 20000,
+      "weight": 380,
+      "category": "Makanan Utama",
+      "imageUrl": "🧀",
+      "isAvailable": true,
+      "createdAt": "2026-10-12T08:00:00.000Z"
+    },
+    {
+      "id": "prod-5",
+      "storeId": "store-kantin-2",
+      "name": "Tahu & Tempe Crispy Sambal Bawang",
+      "price": 8000,
+      "weight": 200,
+      "category": "Snack & Lauk",
+      "imageUrl": "🥟",
+      "isAvailable": true,
+      "createdAt": "2026-10-12T08:00:00.000Z"
+    },
+    {
+      "id": "prod-6",
+      "storeId": "store-kantin-3",
+      "name": "Es Kopi Susu Gula Aren Single Shot",
+      "price": 14000,
+      "weight": 350,
+      "category": "Minuman",
+      "imageUrl": "☕",
+      "isAvailable": true,
+      "createdAt": "2026-10-12T08:00:00.000Z"
+    },
+    {
+      "id": "prod-7",
+      "storeId": "store-kantin-3",
+      "name": "Roti Bakar Coklat Keju Susu",
+      "price": 15000,
+      "weight": 250,
+      "category": "Snack & Roti",
+      "imageUrl": "🥪",
+      "isAvailable": true,
+      "createdAt": "2026-10-12T08:00:00.000Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-camp-1",
+      "organizationId": "org-campus-ui",
+      "customerId": "usr-student-1",
+      "storeId": "store-kantin-1",
+      "batchId": "batch-camp-1200",
+      "status": "READY",
+      "totalPrice": 23000,
+      "deliveryFee": 3000,
+      "deliveryWindow": "12:00",
+      "dropoffLocation": "Gedung B - Fakultas Teknik",
+      "customerNotes": "Titip di satpam lobby depan",
+      "createdAt": "2026-10-31T09:15:00.000Z",
+      "updatedAt": "2026-10-31T09:40:00.000Z"
+    },
+    {
+      "id": "ord-camp-2",
+      "organizationId": "org-campus-ui",
+      "customerId": "usr-student-1",
+      "storeId": "store-kantin-1",
+      "batchId": "batch-camp-1200",
+      "status": "READY",
+      "totalPrice": 22000,
+      "deliveryFee": 3000,
+      "deliveryWindow": "12:00",
+      "dropoffLocation": "Gedung A - Rektorat",
+      "customerNotes": "Lantai 2 Ruang Kemahasiswaan",
+      "createdAt": "2026-10-31T09:20:00.000Z",
+      "updatedAt": "2026-10-31T09:45:00.000Z"
+    },
+    {
+      "id": "ord-camp-3",
+      "organizationId": "org-campus-ui",
+      "customerId": "usr-student-1",
+      "storeId": "store-kantin-2",
+      "batchId": "batch-camp-1200",
+      "status": "READY",
+      "totalPrice": 28000,
+      "deliveryFee": 3000,
+      "deliveryWindow": "12:00",
+      "dropoffLocation": "Gedung D - Perpustakaan Pusat",
+      "customerNotes": "Depan meja loker penitipan tas",
+      "createdAt": "2026-10-31T09:25:00.000Z",
+      "updatedAt": "2026-10-31T09:50:00.000Z"
+    }
+  ],
+  "orderItems": [
+    {
+      "id": "item-1",
+      "orderId": "ord-camp-1",
+      "productId": "prod-1",
+      "qty": 1,
+      "price": 18000,
+      "notes": "Sambal dipisah ya bu"
+    },
+    {
+      "id": "item-2",
+      "orderId": "ord-camp-1",
+      "productId": "prod-3",
+      "qty": 1,
+      "price": 5000,
+      "notes": "Es sedikit saja"
+    },
+    {
+      "id": "item-3",
+      "orderId": "ord-camp-2",
+      "productId": "prod-2",
+      "qty": 1,
+      "price": 22000,
+      "notes": "Kuah rendang banyakan"
+    },
+    {
+      "id": "item-4",
+      "orderId": "ord-camp-3",
+      "productId": "prod-4",
+      "qty": 1,
+      "price": 20000,
+      "notes": "Level 1 saja"
+    },
+    {
+      "id": "item-5",
+      "orderId": "ord-camp-3",
+      "productId": "prod-5",
+      "qty": 1,
+      "price": 8000,
+      "notes": "Goreng garing"
+    }
+  ],
+  "deliveryBatches": [
+    {
+      "id": "batch-camp-1200",
+      "organizationId": "org-campus-ui",
+      "code": "BATCH-CAMPUS-1200",
+      "deliveryWindow": "12:00",
+      "status": "PENDING",
+      "createdAt": "2026-10-31T08:00:00.000Z",
+      "updatedAt": "2026-10-31T09:00:00.000Z"
+    },
+    {
+      "id": "batch-camp-1700",
+      "organizationId": "org-campus-ui",
+      "code": "BATCH-CAMPUS-1700",
+      "deliveryWindow": "17:00",
+      "status": "PENDING",
+      "createdAt": "2026-10-31T08:00:00.000Z",
+      "updatedAt": "2026-10-31T09:00:00.000Z"
+    }
+  ],
+  "courierTasks": [
+    {
+      "id": "task-1",
+      "agentId": "usr-agent-1",
+      "batchId": "batch-camp-1200",
+      "type": "PICKUP",
+      "status": "ASSIGNED",
+      "targetName": "Kantin Bu Slamet",
+      "address": "Kantin Pusat Lt. 1 Kios No. 04",
+      "orderCount": 2,
+      "feeEarned": 2500,
+      "sequence": 1,
+      "createdAt": "2026-10-31T09:50:00.000Z",
+      "updatedAt": "2026-10-31T09:50:00.000Z"
+    },
+    {
+      "id": "task-2",
+      "agentId": "usr-agent-1",
+      "batchId": "batch-camp-1200",
+      "type": "PICKUP",
+      "status": "ASSIGNED",
+      "targetName": "Ayam Geprek Mas Kris",
+      "address": "Kantin Teknik Lt. Dasar",
+      "orderCount": 1,
+      "feeEarned": 2500,
+      "sequence": 2,
+      "createdAt": "2026-10-31T09:50:00.000Z",
+      "updatedAt": "2026-10-31T09:50:00.000Z"
+    },
+    {
+      "id": "task-3",
+      "agentId": "usr-agent-1",
+      "batchId": "batch-camp-1200",
+      "type": "DELIVERY",
+      "status": "ASSIGNED",
+      "targetName": "Gedung A - Rektorat",
+      "address": "Lantai 2 Ruang Kemahasiswaan",
+      "orderCount": 1,
+      "feeEarned": 2500,
+      "sequence": 3,
+      "createdAt": "2026-10-31T09:50:00.000Z",
+      "updatedAt": "2026-10-31T09:50:00.000Z"
+    },
+    {
+      "id": "task-4",
+      "agentId": "usr-agent-1",
+      "batchId": "batch-camp-1200",
+      "type": "DELIVERY",
+      "status": "ASSIGNED",
+      "targetName": "Gedung B - Fakultas Teknik",
+      "address": "Lobby Gedung B Teknik",
+      "orderCount": 1,
+      "feeEarned": 2500,
+      "sequence": 4,
+      "createdAt": "2026-10-31T09:50:00.000Z",
+      "updatedAt": "2026-10-31T09:50:00.000Z"
+    },
+    {
+      "id": "task-5",
+      "agentId": "usr-agent-1",
+      "batchId": "batch-camp-1200",
+      "type": "DELIVERY",
+      "status": "ASSIGNED",
+      "targetName": "Gedung D - Perpustakaan Pusat",
+      "address": "Loker Depan Perpustakaan",
+      "orderCount": 1,
+      "feeEarned": 2500,
+      "sequence": 5,
+      "createdAt": "2026-10-31T09:50:00.000Z",
+      "updatedAt": "2026-10-31T09:50:00.000Z"
+    }
+  ]
 }

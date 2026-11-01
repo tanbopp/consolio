@@ -101,6 +101,8 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as unknown as { role: RoleType }).role || "SELLER";
         token.storeName =
           (user as unknown as { storeName: string }).storeName || "";
+        token.organizationId =
+          (user as unknown as { organizationId?: string }).organizationId || null;
       }
       // Refresh dari DB agar perubahan role/profil selalu sinkron
       if (token.email) {
@@ -113,6 +115,7 @@ export const authOptions: NextAuthOptions = {
           token.name = dbUser.name;
           token.role = dbUser.role;
           token.storeName = dbUser.storeName;
+          token.organizationId = dbUser.organizationId || null;
         }
       }
       if (trigger === "update" && session) {
@@ -128,6 +131,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as { storeName?: string }).storeName = String(
           token.storeName || ""
         );
+        (session.user as { organizationId?: string | null }).organizationId =
+          (token.organizationId as string | null) || null;
       }
       return session;
     },
@@ -143,6 +148,7 @@ export interface AuthenticatedUser {
   email: string;
   role: RoleType;
   storeName: string;
+  organizationId?: string | null;
 }
 
 export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
@@ -161,6 +167,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     email: dbUser.email,
     role: dbUser.role,
     storeName: dbUser.storeName,
+    organizationId: dbUser.organizationId || null,
   };
 }
 
